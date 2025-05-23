@@ -1,1 +1,43 @@
 // app global css in SCSS form
+.bg-tooltip {
+  background: rgba(1, 1, 1, 0.5);
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 400;
+  font-family: NanumSquare;
+}
+
+.header {
+  background: #fff;
+  height: 3.5rem;
+  color: #333;
+  padding: 0 5%;
+  border-bottom: 1px solid #eee;
+}
+
+.footer {
+  background: #fff;
+  color: #333;
+  border-top: 1px solid #eee;
+}
+
+.header-font {
+  font-family: NanumSquare;
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.body-font {
+  font-family: NanumSquare;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.text-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
