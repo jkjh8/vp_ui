@@ -7,7 +7,7 @@ const $q = useQuasar()
 const { dialogRef, onDialogOK } = useDialogPluginComponent()
 
 const getUrl = () => {
-  return `${addr}/api/files/upload`
+  return `${addr}/api/files`
 }
 
 const onRejected = (rejectEntries) => {

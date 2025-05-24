@@ -1,7 +1,7 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
 
-let api, addr
+let addr
 const devServerAddr = `http://${window.location.hostname}:3000`
 
 console.log('node env:', process.env.NODE_ENV)
@@ -12,6 +12,11 @@ if (process.env.NODE_ENV !== 'production') {
   addr = window.location.origin
   console.log('Using production server address:', addr)
 }
+
+// axios 인스턴스 생성
+const api = axios.create({
+  baseURL: `${addr}/api`,
+})
 
 export default defineBoot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api

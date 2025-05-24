@@ -15,10 +15,12 @@
     "postinstall": "quasar prepare"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.5.0",
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
     "pinia": "^3.0.1",
     "quasar": "^2.16.0",
+    "sass-embedded": "^1.89.0",
     "socket.io-client": "^4.8.1",
     "time-convert": "^0.0.2",
     "vue": "^3.4.18",
