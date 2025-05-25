@@ -29,6 +29,12 @@ const firstCharUpperCase = (str) => {
       { name: 'size', label: 'Size', field: 'size', align: 'center', sortable: true },
       { name: 'actions', label: 'Actions', align: 'center' },
     ]"
+    :pagination="{
+      rowsPerPage: 10,
+      page: 1,
+      sortBy: 'id',
+      descending: false,
+    }"
   >
     <!-- 이름 앞에 썸네일 표시: uuid로 요청하고 썸네일 파일을 서버에서 받아와서 표시 -->
     <template v-slot:body="props">
@@ -81,11 +87,35 @@ const firstCharUpperCase = (str) => {
           <q-btn
             round
             flat
+            dense
+            icon="play_arrow"
+            color="primary"
+            @click="$emit('view', props.row.id)"
+          />
+          <q-btn
+            round
+            flat
+            dense
+            icon="info"
+            color="secondary"
+            @click="$emit('edit', props.row.id)"
+          />
+          <q-btn
+            round
+            flat
+            dense
             icon="download"
             color="primary"
             @click="$emit('download', props.row.id)"
           />
-          <q-btn round flat icon="delete" color="negative" @click="$emit('delete', props.row.id)" />
+          <q-btn
+            round
+            flat
+            dense
+            icon="delete"
+            color="negative"
+            @click="$emit('delete', props.row.id)"
+          />
         </q-td>
       </q-tr>
     </template>
