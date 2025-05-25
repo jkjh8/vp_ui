@@ -160,9 +160,6 @@ const fnDeleteFile = (file) => {
       </q-tr>
     </template>
   </q-table>
-  <div>
-    {{ files }}
-  </div>
 </template>
 
 <style scoped></style>

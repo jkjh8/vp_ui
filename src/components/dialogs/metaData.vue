@@ -211,11 +211,11 @@ const filteredMeta = computed(() => {
 
 <style scoped>
 .meta-dialog-card {
-  width: 90vw;
+  width: 70vw;
   max-width: 900px;
   min-width: 320px;
-  height: 80vh;
-  max-height: 90vh;
+  height: 70vh;
+  max-height: 80em;
   min-height: 300px;
   display: flex;
   flex-direction: column;

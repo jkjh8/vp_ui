@@ -22,7 +22,7 @@ const onRejected = (rejectEntries) => {
   <q-dialog ref="dialogRef" persistent>
     <q-uploader
       class="uploader"
-      style="width: 100%; max-width: 800px; min-width: 300px"
+      style="width: 70%; max-width: 800px; min-width: 300px"
       multiple
       :url="getUrl"
       :field-name="(file) => encodeURIComponent(file.name)"
