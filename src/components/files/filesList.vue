@@ -4,9 +4,12 @@ import { useQuasar } from 'quasar'
 import { storeToRefs } from 'pinia'
 // dialog
 import MetaData from '../dialogs/metaData.vue'
+import DeleteFile from '../dialogs/deleteFile.vue'
 //pinia
 import { useFilesStore } from 'src/stores/useFiles'
 import { addr } from 'src/boot/axios'
+// composables
+import { firstCharUpperCase, humanReadableFileSize } from 'src/composables/useUtils.js'
 
 const $q = useQuasar()
 const { getFileList } = useFilesStore()
@@ -26,12 +29,40 @@ const fnShowMetaData = (file) => {
   })
 }
 
-const humanReadableFileSize = (size) => {
-  const i = Math.floor(Math.log(size) / Math.log(1024))
-  return `${(size / Math.pow(1024, i)).toFixed(2)} ${['B', 'KB', 'MB', 'GB'][i]}`
-}
-const firstCharUpperCase = (str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+const fnDeleteFile = (file) => {
+  $q.dialog({
+    component: DeleteFile,
+    componentProps: {
+      fileName: file.originalname,
+    },
+  })
+    .onOk(() => {
+      try {
+        $q.loading.show({
+          message: `Deleting file with ID ${file.originalname}...`,
+        })
+        $q.notify({
+          type: 'positive',
+          message: `File with ID ${file.originalname} deleted successfully.`,
+        })
+        // Call the delete function from the store
+        useFilesStore().deleteFile(file)
+        useFilesStore().getFileList()
+      } catch (error) {
+        $q.notify({
+          type: 'negative',
+          message: `Error deleting file with ID ${file.originalname}: ${error.message}`,
+        })
+      } finally {
+        $q.loading.hide()
+      }
+    })
+    .onCancel(() => {
+      $q.notify({
+        type: 'negative',
+        message: 'File deletion cancelled.',
+      })
+    })
 }
 </script>
 
@@ -124,14 +155,7 @@ const firstCharUpperCase = (str) => {
             color="primary"
             @click="$emit('download', props.row.id)"
           />
-          <q-btn
-            round
-            flat
-            dense
-            icon="delete"
-            color="negative"
-            @click="$emit('delete', props.row.id)"
-          />
+          <q-btn round flat dense icon="delete" color="negative" @click="fnDeleteFile(props.row)" />
         </q-td>
       </q-tr>
     </template>

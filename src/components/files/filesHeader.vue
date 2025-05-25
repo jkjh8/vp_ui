@@ -1,13 +1,15 @@
 <script setup>
 import { useQuasar } from 'quasar'
 import UploadFiles from '../dialogs/updateFiles.vue'
+// pinia
+import { useFilesStore } from 'src/stores/useFiles'
 const $q = useQuasar()
 
 const fnUploadFiles = () => {
   $q.dialog({
     component: UploadFiles,
   }).onOk(() => {
-    //
+    useFilesStore().getFileList()
   })
 }
 </script>

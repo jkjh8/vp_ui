@@ -13,7 +13,21 @@ export const useFilesStore = defineStore('files', () => {
       console.error('Error fetching file list:', error)
     }
   }
-  return { files, getFileList }
+
+  const deleteFile = async (file) => {
+    try {
+      const r = await api.delete(`/files/${file.uuid}`)
+      if (r.status === 200) {
+        console.log('File deleted successfully:', file)
+        files.value = files.value.filter((f) => f.uuid !== file.uuid)
+      } else {
+        console.error('Failed to delete file:', r.statusText)
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error)
+    }
+  }
+  return { files, getFileList, deleteFile }
 })
 
 if (import.meta.hot) {
