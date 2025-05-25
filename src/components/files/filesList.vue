@@ -1,14 +1,30 @@
 <script setup>
 import { onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import { storeToRefs } from 'pinia'
+// dialog
+import MetaData from '../dialogs/metaData.vue'
 //pinia
 import { useFilesStore } from 'src/stores/useFiles'
 import { addr } from 'src/boot/axios'
+
+const $q = useQuasar()
 const { getFileList } = useFilesStore()
 const { files } = storeToRefs(useFilesStore())
 onMounted(async () => {
   await getFileList()
 })
+
+const fnShowMetaData = (file) => {
+  console.log(file)
+  $q.dialog({
+    component: MetaData,
+    componentProps: {
+      title: file.originalname,
+      metadata: file.metadata,
+    },
+  })
+}
 
 const humanReadableFileSize = (size) => {
   const i = Math.floor(Math.log(size) / Math.log(1024))
@@ -98,7 +114,7 @@ const firstCharUpperCase = (str) => {
             dense
             icon="info"
             color="secondary"
-            @click="$emit('edit', props.row.id)"
+            @click="fnShowMetaData(props.row)"
           />
           <q-btn
             round
