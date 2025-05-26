@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
+import { humanReadableFileSize } from 'src/composables/useUtils'
 const { dialogRef, onDialogOK } = useDialogPluginComponent()
 
 const props = defineProps({
@@ -62,7 +63,7 @@ const filteredMeta = computed(() => {
   <q-dialog ref="dialogRef" persistent>
     <q-card class="meta-dialog-card">
       <q-card-section>
-        <div class="row items-center">
+        <div class="row items-center q-pa-md">
           <q-icon name="info" color="primary" size="sm" class="q-mr-sm" />
           <div class="text-h6">{{ props.title }}</div>
         </div>
@@ -103,8 +104,13 @@ const filteredMeta = computed(() => {
                       </div>
                     </div>
                   </template>
+                  <template v-else-if="k === 'size' && typeof v === 'number'">
+                    <!-- size 항목이면 humanReadableFileSize 적용 -->
+                    {{ humanReadableFileSize(v) }}
+                  </template>
                   <template v-else>
-                    {{ v }}
+                    <!-- 숫자면 1000단위 콤마, 아니면 그대로 -->
+                    {{ typeof v === 'number' ? v.toLocaleString() : v }}
                   </template>
                 </div>
               </div>
@@ -154,7 +160,8 @@ const filteredMeta = computed(() => {
                     </div>
                   </template>
                   <template v-else>
-                    {{ v }}
+                    <!-- 숫자면 1000단위 콤마, 아니면 그대로 -->
+                    {{ typeof v === 'number' ? v.toLocaleString() : v }}
                   </template>
                 </div>
               </div>
@@ -190,7 +197,8 @@ const filteredMeta = computed(() => {
                     </div>
                   </template>
                   <template v-else>
-                    {{ v }}
+                    <!-- 숫자면 1000단위 콤마, 아니면 그대로 -->
+                    {{ typeof v === 'number' ? v.toLocaleString() : v }}
                   </template>
                 </div>
               </div>
@@ -202,7 +210,7 @@ const filteredMeta = computed(() => {
         </div>
       </q-card-section>
 
-      <q-card-actions class="justify-end q-px-md">
+      <q-card-actions class="justify-end q-pa-md q-mr-md">
         <q-btn round icon="check" color="primary" size="sm" @click="onDialogOK" />
       </q-card-actions>
     </q-card>
@@ -211,14 +219,17 @@ const filteredMeta = computed(() => {
 
 <style scoped>
 .meta-dialog-card {
-  width: 70vw;
-  max-width: 900px;
+  width: 50vw;
+  max-width: 800px;
   min-width: 320px;
   height: 70vh;
   max-height: 80em;
   min-height: 300px;
   display: flex;
   flex-direction: column;
+  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid #e0e0e0; /* 테두리 추가 */
 }
 .meta-scroll-area {
   flex: 1 1 0;

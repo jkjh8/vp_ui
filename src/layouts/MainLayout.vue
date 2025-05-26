@@ -3,7 +3,6 @@ import { useRouter } from 'vue-router'
 import MenuFull from 'components/menu/menuFull.vue'
 import MenuSmall from 'components/menu/menuSmall.vue'
 import PlayControl from 'components/controls/PlayControl.vue'
-
 const router = useRouter()
 </script>
 

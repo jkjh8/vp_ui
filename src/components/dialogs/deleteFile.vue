@@ -36,4 +36,9 @@ const props = defineProps({
   </q-dialog>
 </template>
 
-<style scoped></style>
+<style scoped>
+.q-card {
+  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, 0.7); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
+}
+</style>

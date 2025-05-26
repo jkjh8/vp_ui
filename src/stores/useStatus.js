@@ -39,6 +39,8 @@ export const useStatusStore = defineStore('status', () => {
       position: 0.0,
       fullscreen: false,
       playing: false,
+      is_image: false,
+      image_path: null,
     },
     volume: 0,
     speed: 0,

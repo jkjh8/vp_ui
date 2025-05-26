@@ -10,7 +10,7 @@ import { useFilesStore } from 'src/stores/useFiles'
 import { addr } from 'src/boot/axios'
 // composables
 import { firstCharUpperCase, humanReadableFileSize } from 'src/composables/useUtils.js'
-
+import { fnPlayById } from 'src/composables/usePlayer'
 const $q = useQuasar()
 const { getFileList } = useFilesStore()
 const { files } = storeToRefs(useFilesStore())
@@ -137,7 +137,7 @@ const fnDeleteFile = (file) => {
             dense
             icon="play_arrow"
             color="primary"
-            @click="$emit('view', props.row.id)"
+            @click="fnPlayById(props.row.number)"
           />
           <q-btn
             round

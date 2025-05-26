@@ -3,10 +3,11 @@
 import DelayedTooltip from '/src/components/delayedTooltip.vue'
 // pinia
 import { useStatusStore } from '/src/stores/useStatus.js'
+import { storeToRefs } from 'pinia'
 
-const { pStatus } = useStatusStore()
+const { pStatus } = storeToRefs(useStatusStore())
 // composables
-// import { fnPlay, fnPause, fnStop, setFullscreen } from '/src/composables/usePlayer'
+import { fnPlay, fnStop, fnPause } from '/src/composables/usePlayer'
 </script>
 
 <template>
@@ -19,16 +20,23 @@ const { pStatus } = useStatusStore()
     </div>
     <!-- play button -->
     <div>
-      <q-btn v-if="pStatus.player.status != 1" flat round icon="play_arrow" color="primary">
+      <q-btn
+        v-if="pStatus.player.playing !== 1"
+        flat
+        round
+        icon="play_arrow"
+        color="primary"
+        @click="fnPlay()"
+      >
         <DelayedTooltip msg="Play" />
       </q-btn>
-      <q-btn v-else-if="pStatus.player.status == 1" flat round icon="pause" color="primary">
+      <q-btn v-else flat round icon="pause" color="primary" @click="fnPause">
         <DelayedTooltip msg="Pause" />
       </q-btn>
     </div>
     <!-- stop button -->
     <div>
-      <q-btn flat round icon="stop" color="red-10">
+      <q-btn flat round icon="stop" color="red-10" @click="fnStop()">
         <DelayedTooltip msg="Stop" />
       </q-btn>
     </div>
