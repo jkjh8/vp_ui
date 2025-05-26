@@ -7,9 +7,12 @@ const { pStatus } = useStatusStore()
 
 <template>
   <div class="row no-wrap justify-center items-center q-mt-sm">
-    <div class="text-bold">
-      {{ pStatus.current.name ? pStatus.current.name : 'No media selected' }}
+    <div v-if="pStatus.current && Object.keys(pStatus.current).length > 0" class="q-mr-md">
+      <div class="text-bold">
+        {{ pStatus.current.originalname ? pStatus.current.originalname : 'No media selected' }}
+      </div>
     </div>
+    <div v-else class="text-grey">No media selected</div>
   </div>
 </template>
 

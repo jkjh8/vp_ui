@@ -90,7 +90,7 @@ const fnDeleteFile = (file) => {
           <div class="row no-wrap items-center">
             <div
               style="
-                width: 60px;
+                width: 70px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -102,25 +102,22 @@ const fnDeleteFile = (file) => {
                 :src="`${addr}/api/files/thumbnail/${props.row.uuid}`"
                 style="width: 50px; cursor: pointer"
                 :alt="props.row.originalname"
-                @mouseenter="props.row._showPreview = true"
-                @mouseleave="props.row._showPreview = false"
-              />
+              >
+                <q-menu anchor="bottom right" self="top right">
+                  <q-img
+                    :src="`${addr}/api/files/thumbnail/${props.row.uuid}`"
+                    style="
+                      width: 200px;
+                      max-width: 300px;
+                      border: 1px solid #ccc;
+                      background: #fff;
+                      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                    "
+                    :alt="props.row.originalname"
+                  />
+                </q-menu>
+              </q-img>
               <q-icon v-else name="play_arrow" size="sm" color="primary" />
-              <q-img
-                v-if="props.row.thumbnail && props.row._showPreview"
-                :src="`${addr}/api/files/thumbnail/${props.row.uuid}`"
-                style="
-                  position: absolute;
-                  top: 30;
-                  left: 110%;
-                  width: 200px;
-                  z-index: 10;
-                  border: 1px solid #ccc;
-                  background: #fff;
-                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-                "
-                :alt="props.row.originalname"
-              />
             </div>
             <div>
               {{ props.row.originalname }}
