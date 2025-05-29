@@ -3,16 +3,13 @@ const padTo2Digits = (num) => {
 }
 
 const msToHMS = (milliseconds) => {
-  if (milliseconds < 0) {
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) {
     return '00:00:00'
   }
-  let seconds = Math.floor(milliseconds)
-  let minutes = Math.floor(seconds / 60)
-  let hours = Math.floor(minutes / 60)
-
-  seconds = seconds % 60
-  minutes = minutes % 60
-  hours = hours % 24
+  let totalSeconds = Math.floor(milliseconds)
+  const hours = Math.floor(totalSeconds / 3600) % 24
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
 
   return `${padTo2Digits(hours)}:${padTo2Digits(minutes)}:${padTo2Digits(seconds)}`
 }

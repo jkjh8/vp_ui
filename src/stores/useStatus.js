@@ -3,9 +3,7 @@ import { ref } from 'vue'
 
 export const useStatusStore = defineStore('status', () => {
   const pStatus = ref({
-    mode: 'single',
-    uuid: '',
-    name: '',
+    playlistmode: false,
     nics: [],
     darkmode: false,
     current: {
@@ -42,8 +40,6 @@ export const useStatusStore = defineStore('status', () => {
       is_image: false,
       image_path: null,
     },
-    volume: 0,
-    speed: 0,
     background: '',
   })
 

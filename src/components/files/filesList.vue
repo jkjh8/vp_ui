@@ -23,7 +23,7 @@ const fnShowMetaData = (file) => {
   $q.dialog({
     component: MetaData,
     componentProps: {
-      title: file.originalname,
+      fieldname: file.fieldname,
       metadata: file.metadata,
     },
   })
@@ -33,17 +33,17 @@ const fnDeleteFile = (file) => {
   $q.dialog({
     component: DeleteFile,
     componentProps: {
-      fileName: file.originalname,
+      fileName: file.fieldname,
     },
   })
     .onOk(() => {
       try {
         $q.loading.show({
-          message: `Deleting file with ID ${file.originalname}...`,
+          message: `Deleting file with ID ${file.fieldname}...`,
         })
         $q.notify({
           type: 'positive',
-          message: `File with ID ${file.originalname} deleted successfully.`,
+          message: `File with ID ${file.fieldname} deleted successfully.`,
         })
         // Call the delete function from the store
         useFilesStore().deleteFile(file)
@@ -51,7 +51,7 @@ const fnDeleteFile = (file) => {
       } catch (error) {
         $q.notify({
           type: 'negative',
-          message: `Error deleting file with ID ${file.originalname}: ${error.message}`,
+          message: `Error deleting file with ID ${file.fieldname}: ${error.message}`,
         })
       } finally {
         $q.loading.hide()
@@ -70,7 +70,7 @@ const fnDeleteFile = (file) => {
   <q-table
     :rows="files"
     :columns="[
-      { name: 'name', label: 'Name', field: 'originalname', align: 'left', sortable: true },
+      { name: 'name', label: 'Name', field: 'fieldname', align: 'left', sortable: true },
       { name: 'id', label: 'ID', field: 'number', align: 'center', sortable: true },
       { name: 'type', label: 'Type', field: 'mimetype', align: 'center', sortable: true },
       { name: 'size', label: 'Size', field: 'size', align: 'center', sortable: true },
@@ -113,14 +113,14 @@ const fnDeleteFile = (file) => {
                       background: #fff;
                       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                     "
-                    :alt="props.row.originalname"
+                    :alt="props.row.fieldname"
                   />
                 </q-menu>
               </q-img>
               <q-icon v-else name="play_arrow" size="sm" color="primary" />
             </div>
             <div>
-              {{ props.row.originalname }}
+              {{ props.row.fieldname }}
             </div>
           </div>
         </q-td>

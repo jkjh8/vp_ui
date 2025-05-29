@@ -7,7 +7,7 @@ import { storeToRefs } from 'pinia'
 
 const { pStatus } = storeToRefs(useStatusStore())
 // composables
-import { fnPlay, fnStop, fnPause } from '/src/composables/usePlayer'
+import { fnPlay, fnStop, fnPause, fnSetFullscreen } from '/src/composables/usePlayer'
 </script>
 
 <template>
@@ -49,10 +49,24 @@ import { fnPlay, fnStop, fnPause } from '/src/composables/usePlayer'
 
     <!-- fullscreen button -->
     <div>
-      <q-btn v-if="pStatus.fullscreen" flat round icon="fullscreen_exit" color="primary">
+      <q-btn
+        v-if="pStatus.player && pStatus.player.fullscreen"
+        flat
+        round
+        icon="fullscreen_exit"
+        color="primary"
+        @click="fnSetFullscreen(!pStatus.player.fullscreen)"
+      >
         <DelayedTooltip msg="Exit Fullscreen" />
       </q-btn>
-      <q-btn v-else flat round icon="fullscreen" color="primary">
+      <q-btn
+        v-else
+        flat
+        round
+        icon="fullscreen"
+        color="primary"
+        @click="fnSetFullscreen(!pStatus.player.fullscreen)"
+      >
         <DelayedTooltip msg="Fullscreen" />
       </q-btn>
     </div>

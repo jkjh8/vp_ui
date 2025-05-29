@@ -1,11 +1,44 @@
 <script setup>
+import { ref } from 'vue'
 // pinia
 import { useStatusStore } from 'src/stores/useStatus.js'
 import { storeToRefs } from 'pinia'
 // composables
 import { msToHMS } from 'src/composables/useTime'
+import { fnUpdateTime } from 'src/composables/usePlayer'
 
 const { pStatus } = storeToRefs(useStatusStore())
+
+const slideTime = ref(0)
+const start = ref(false)
+
+const props = defineProps({
+  time: {
+    type: Boolean,
+    default: true,
+  },
+})
+
+const updateTimeFromSlide = (t) => {
+  slideTime.value = t
+  // panning이 시작된 적이 없을 때(즉, 클릭만 한 경우)에만 호출
+  if (!start.value) {
+    fnUpdateTime(slideTime.value)
+  }
+}
+
+const panning = (e) => {
+  try {
+    if (e === 'start') {
+      start.value = true
+    } else if (e === 'end') {
+      start.value = false
+      fnUpdateTime(slideTime.value)
+    }
+  } catch (error) {
+    console.error('Error during panning:', error)
+  }
+}
 </script>
 
 <template>
@@ -18,8 +51,10 @@ const { pStatus } = storeToRefs(useStatusStore())
       :max="pStatus.player.duration / 1000"
       label
       :label-value="msToHMS(pStatus.player.time / 1000)"
+      @update:model-value="updateTimeFromSlide"
+      @pan="panning"
     />
-    <div class="gt-xs text-caption q-px-sm">
+    <div v-if="props.time" class="gt-xs text-caption q-px-sm">
       {{ msToHMS(pStatus.player.time / 1000) }}/{{ msToHMS(pStatus.player.duration / 1000) }}
     </div>
   </div>

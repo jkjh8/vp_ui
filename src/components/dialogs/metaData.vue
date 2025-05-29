@@ -5,7 +5,7 @@ import { humanReadableFileSize } from 'src/composables/useUtils'
 const { dialogRef, onDialogOK } = useDialogPluginComponent()
 
 const props = defineProps({
-  title: {
+  fieldname: {
     type: String,
     default: 'Metadata',
   },
@@ -65,7 +65,10 @@ const filteredMeta = computed(() => {
       <q-card-section>
         <div class="row items-center q-pa-md">
           <q-icon name="info" color="primary" size="sm" class="q-mr-sm" />
-          <div class="text-h6">{{ props.title }}</div>
+          <!-- 파일명에 한글이 깨질 경우 decodeURIComponent 적용 -->
+          <div class="text-h6">
+            {{ props.fieldname }}
+          </div>
         </div>
       </q-card-section>
 
@@ -86,7 +89,7 @@ const filteredMeta = computed(() => {
                 <div class="q-ml-sm" style="word-break: break-all; white-space: pre-line">
                   <!-- filename 항목이면 파일명만 표시 -->
                   <template v-if="k === 'filename'">
-                    {{ props.title }}
+                    {{ props.fieldname }}
                   </template>
                   <template v-else-if="k === 'tags' && typeof v === 'object' && v">
                     <div class="q-ml-md">
@@ -105,12 +108,16 @@ const filteredMeta = computed(() => {
                     </div>
                   </template>
                   <template v-else-if="k === 'size' && typeof v === 'number'">
-                    <!-- size 항목이면 humanReadableFileSize 적용 -->
                     {{ humanReadableFileSize(v) }}
                   </template>
                   <template v-else>
-                    <!-- 숫자면 1000단위 콤마, 아니면 그대로 -->
-                    {{ typeof v === 'number' ? v.toLocaleString() : v }}
+                    <!-- 한글이 깨질 수 있는 값은 decodeURIComponent 시도 -->
+                    <span v-if="typeof v === 'string' && /%[0-9A-Fa-f]{2}/.test(v)">
+                      {{ decodeURIComponent(v) }}
+                    </span>
+                    <span v-else>
+                      {{ typeof v === 'number' ? v.toLocaleString() : v }}
+                    </span>
                   </template>
                 </div>
               </div>

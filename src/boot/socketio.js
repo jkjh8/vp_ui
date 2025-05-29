@@ -24,6 +24,7 @@ export default async ({ app }) => {
       pStatus.value.player = status
     })
     socket.on('current', (file) => {
+      console.log('Current file:', file)
       pStatus.value.current = file
     })
     socket.on('error', (error) => {
