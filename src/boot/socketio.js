@@ -20,6 +20,10 @@ export default async ({ app }) => {
     socket.on('disconnect', () => {
       console.log('Socket disconnected')
     })
+    socket.on('pStatus', (status) => {
+      console.log('Received status:', status)
+      Object.assign(pStatus.value, status)
+    })
     socket.on('player', (status) => {
       pStatus.value.player = status
     })
