@@ -10,6 +10,12 @@ const $q = useQuasar()
 const logoFiles = ref([])
 const selected = ref(null)
 
+const props = defineProps({
+  logo: {
+    type: String,
+  },
+})
+
 const openDialogFileUpload = () => {
   $q.dialog({
     component: updateLogoFile,
@@ -40,6 +46,10 @@ const getLogoFiles = async () => {
 }
 
 onMounted(async () => {
+  if (props.logo) {
+    selected.value = props.logo
+  }
+  // Fetch logo files when the component is mounted
   await getLogoFiles()
 })
 </script>

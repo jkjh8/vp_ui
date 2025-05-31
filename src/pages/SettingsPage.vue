@@ -1,6 +1,7 @@
 <script setup>
 import BackgroundColor from 'src/components/setup/backgroundColor.vue'
-import LogoFileSel from 'src/components/setup/logoFileSel.vue'
+import LogoSetup from 'src/components/setup/logoSetup.vue'
+import audioDevice from 'src/components/setup/audioDevice.vue'
 </script>
 
 <template>
@@ -8,7 +9,10 @@ import LogoFileSel from 'src/components/setup/logoFileSel.vue'
     <q-card flat>
       <q-card-section>
         <BackgroundColor />
-        <LogoFileSel />
+        <q-separator class="q-my-md" />
+        <LogoSetup />
+        <q-separator class="q-my-md" />
+        <audioDevice />
       </q-card-section>
     </q-card>
   </div>
