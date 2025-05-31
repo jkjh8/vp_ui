@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 // pinia
 import { useStatusStore } from 'src/stores/useStatus.js'
 import { storeToRefs } from 'pinia'
@@ -19,16 +19,19 @@ const props = defineProps({
   },
 })
 
+const isImage = computed(() => pStatus.value.current?.is_image)
+
 const updateTimeFromSlide = (t) => {
   slideTime.value = t
   // panning이 시작된 적이 없을 때(즉, 클릭만 한 경우)에만 호출
-  if (!start.value) {
+  if (!start.value && !isImage.value) {
     fnUpdateTime(slideTime.value)
   }
 }
 
 const panning = (e) => {
   try {
+    if (isImage.value) return
     if (e === 'start') {
       start.value = true
     } else if (e === 'end') {
@@ -53,6 +56,7 @@ const panning = (e) => {
       :label-value="msToHMS(pStatus.player.time / 1000)"
       @update:model-value="updateTimeFromSlide"
       @pan="panning"
+      :disable="isImage"
     />
     <div v-if="props.time" class="gt-xs text-caption">
       {{ msToHMS(pStatus.player.time / 1000) }}/{{ msToHMS(pStatus.player.duration / 1000) }}
