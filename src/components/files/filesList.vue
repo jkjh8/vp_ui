@@ -11,9 +11,11 @@ import { addr } from 'src/boot/axios'
 // composables
 import { firstCharUpperCase, humanReadableFileSize } from 'src/composables/useUtils.js'
 import { fnPlayById } from 'src/composables/usePlayer'
+
 const $q = useQuasar()
 const { getFileList } = useFilesStore()
 const { files } = storeToRefs(useFilesStore())
+
 onMounted(async () => {
   await getFileList()
 })
@@ -150,7 +152,7 @@ const fnDeleteFile = (file) => {
             dense
             icon="download"
             color="primary"
-            @click="$emit('download', props.row.id)"
+            @click="useFilesStore().downloadFile(props.row)"
           />
           <q-btn round flat dense icon="delete" color="negative" @click="fnDeleteFile(props.row)" />
         </q-td>

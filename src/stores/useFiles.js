@@ -27,7 +27,23 @@ export const useFilesStore = defineStore('files', () => {
       console.error('Error deleting file:', error)
     }
   }
-  return { files, getFileList, deleteFile }
+
+  const downloadFile = async (file) => {
+    try {
+      const response = await api.get(`/files/download/${file.uuid}`, {
+        responseType: 'blob',
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', file.filename)
+      document.body.appendChild(link)
+      link.click()
+    } catch (error) {
+      console.error('Error downloading file:', error)
+    }
+  }
+  return { files, getFileList, deleteFile, downloadFile }
 })
 
 if (import.meta.hot) {

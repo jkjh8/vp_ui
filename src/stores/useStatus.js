@@ -1,5 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref } from 'vue'
+import { api } from 'src/boot/axios'
 
 export const useStatusStore = defineStore('status', () => {
   const pStatus = ref({
@@ -42,8 +43,29 @@ export const useStatusStore = defineStore('status', () => {
     },
     background: '',
   })
+  // Function to update the status
+  const updateStatus = async (key, newValue) => {
+    try {
+      const r = await api.post('/status/update', { key, value: newValue })
+      console.log(r)
+      if (r.data.pStatus) {
+        // 서버에서 pStatus 전체를 반환하는 경우
+        for (const [k, v] of Object.entries(r.data.pStatus)) {
+          if (pStatus.value[k] !== undefined) {
+            pStatus.value[k] = v
+          } else {
+            console.warn(`Unknown key "${k}" in pStatus`)
+          }
+        }
+      }
+      // 서버에서 pStatus 전체를 반환하지 않으므로, 성공 여부만 확인
+      // 필요시 getStatus 등 별도 fetch로 동기화
+    } catch (error) {
+      console.error(`Error updating status for key "${key}":`, error)
+    }
+  }
 
-  return { pStatus }
+  return { pStatus, updateStatus }
 })
 
 if (import.meta.hot) {
