@@ -4,16 +4,30 @@ import DelayedTooltip from '/src/components/delayedTooltip.vue'
 // pinia
 import { useStatusStore } from '/src/stores/useStatus.js'
 import { storeToRefs } from 'pinia'
-
+import { socket } from '/src/boot/socketio.js'
 const { pStatus } = storeToRefs(useStatusStore())
 // composables
 import { fnPlay, fnStop, fnPause, fnSetFullscreen } from '/src/composables/usePlayer'
+
+// methods
+const rotateRepeat = () => {
+  if (pStatus.value.repeat === 'none') {
+    pStatus.value.repeat = 'all'
+  } else if (pStatus.value.repeat === 'all') {
+    pStatus.value.repeat = pStatus.value.playlistmode ? 'repeat_one' : 'none'
+  } else if (pStatus.value.playlistmode && pStatus.value.repeat === 'repeat_one') {
+    pStatus.value.repeat = 'single'
+  } else if (pStatus.value.repeat === 'single') {
+    pStatus.value.repeat = 'none'
+  }
+  socket.emit('event', { type: 'repeat', value: pStatus.value.repeat })
+}
 </script>
 
 <template>
   <div class="row no-wrap justify-center items-center q-mb-sm q-gutter-x-md">
     <!-- rewind -->
-    <div>
+    <div v-if="pStatus.playlistmode">
       <q-btn flat round icon="fast_rewind" color="primary">
         <DelayedTooltip msg="Rewind" />
       </q-btn>
@@ -41,9 +55,52 @@ import { fnPlay, fnStop, fnPause, fnSetFullscreen } from '/src/composables/usePl
       </q-btn>
     </div>
     <!-- forward button -->
-    <div>
+    <div v-if="pStatus.playlistmode">
       <q-btn flat round icon="fast_forward" color="primary">
         <DelayedTooltip msg="Forward" />
+      </q-btn>
+    </div>
+    <!-- repeat -->
+    <div>
+      <q-btn
+        v-if="pStatus.repeat === 'none'"
+        flat
+        round
+        icon="repeat"
+        color="grey-5"
+        @click="rotateRepeat"
+      >
+        <DelayedTooltip msg="None" />
+      </q-btn>
+      <q-btn
+        v-else-if="pStatus.repeat === 'all'"
+        flat
+        round
+        icon="repeat"
+        color="primary"
+        @click="rotateRepeat"
+      >
+        <DelayedTooltip msg="Repeat" />
+      </q-btn>
+      <q-btn
+        v-else-if="pStatus.playlistmode && pStatus.repeat === 'repeat_one'"
+        flat
+        round
+        icon="repeat_one"
+        color="primary"
+        @click="rotateRepeat"
+      >
+        <DelayedTooltip msg="Repeat One" />
+      </q-btn>
+      <q-btn
+        v-else-if="pStatus.repeat === 'single'"
+        flat
+        round
+        icon="looks_one"
+        color="primary"
+        @click="rotateRepeat"
+      >
+        <DelayedTooltip msg="Single" />
       </q-btn>
     </div>
 

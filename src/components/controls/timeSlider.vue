@@ -42,7 +42,7 @@ const panning = (e) => {
 </script>
 
 <template>
-  <div class="row no-wrap q-pt-none q-mt-none items-center">
+  <div class="row no-wrap q-pt-none q-mt-none q-px-md q-gutter-x-sm items-center">
     <q-slider
       class="q-mt-none q-pt-none"
       :model-value="pStatus.player.time / 1000"
@@ -54,7 +54,7 @@ const panning = (e) => {
       @update:model-value="updateTimeFromSlide"
       @pan="panning"
     />
-    <div v-if="props.time" class="gt-xs text-caption q-px-sm">
+    <div v-if="props.time" class="gt-xs text-caption">
       {{ msToHMS(pStatus.player.time / 1000) }}/{{ msToHMS(pStatus.player.duration / 1000) }}
     </div>
   </div>
