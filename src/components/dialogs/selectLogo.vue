@@ -6,7 +6,7 @@ import updateLogoFile from '../dialogs/updateLogoFile.vue'
 import { useApiStore } from 'src/stores/useApi'
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-const { getAddr, getApi, apiCallWithLoading } = useApiStore()
+const { getAddr, apiCallWithLoading } = useApiStore()
 const $q = useQuasar()
 const logoFiles = ref([])
 const selected = ref(null)
@@ -34,10 +34,13 @@ const openDialogFileUpload = () => {
 }
 
 const getLogoFiles = async () => {
-  await apiCallWithLoading(async () => {
-    const response = await getApi().get('/status/logo')
-    logoFiles.value = response.data
-  }, 'Fetching logo files...')
+  await apiCallWithLoading('/status/logo', 'GET', null, 'Fetching logo files...')
+    .then((response) => {
+      logoFiles.value = response.data
+    })
+    .catch((error) => {
+      console.error('Error fetching logo files:', error)
+    })
 }
 
 onMounted(async () => {

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useApiStore } from 'src/stores/useApi'
 
 export const useStatusStore = defineStore('status', () => {
-  const { apiCallWithLoading, getApi } = useApiStore()
+  const { apiCallWithLoading } = useApiStore()
 
   const pStatus = ref({
     playlistmode: false,
@@ -49,7 +49,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const updateStatus = async (key, newValue) => {
     const response = await apiCallWithLoading(
-      () => getApi().post('/status/update', { key, value: newValue }),
+      '/status/update',
+      'POST',
+      { key, value: newValue },
       `Updating status for key "${key}"...`,
     )
     if (response.data.pStatus) {
@@ -66,7 +68,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const setAudioDevice = async (deviceId) => {
     const response = await apiCallWithLoading(
-      () => getApi().put('/player/setaudiodevice', { deviceId }),
+      '/player/setaudiodevice',
+      'PUT',
+      { deviceId },
       'Setting audio device...',
     )
     pStatus.value.device.audiodevice = deviceId
@@ -117,7 +121,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const updateImageTime = async (value) => {
     const response = await apiCallWithLoading(
-      () => getApi().post(`/status/update`, { key: 'image_time', value }),
+      '/status/update',
+      'POST',
+      { key: 'image_time', value },
       `Updating image time to ${value}...`,
     )
     if (response.data.pStatus) {
@@ -127,7 +133,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const updateLogo = async (logoName) => {
     const response = await apiCallWithLoading(
-      () => getApi().get(`/status/logo/sel/${encodeURIComponent(logoName)}`),
+      `/status/logo/sel/${encodeURIComponent(logoName)}`,
+      'GET',
+      null,
       `Updating logo to ${logoName}...`,
     )
     if (response.data.pStatus) {
@@ -139,7 +147,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const updateLogoSize = async (width, height) => {
     const response = await apiCallWithLoading(
-      () => getApi().put(`/status/logo/size`, { width, height }),
+      '/status/logo/size',
+      'PUT',
+      { width, height },
       'Updating logo size...',
     )
     if (!response.data.pStatus || !response.data.pStatus.logo) {
@@ -152,7 +162,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const updateLogoVisibility = async (isVisible) => {
     const response = await apiCallWithLoading(
-      () => getApi().get(`/status/logo/show/${isVisible ? 'true' : 'false'}`),
+      `/status/logo/show/${isVisible ? 'true' : 'false'}`,
+      'GET',
+      null,
       `Updating logo visibility to ${isVisible ? 'visible' : 'hidden'}...`,
     )
     pStatus.value.logo = response.data.pStatus.logo

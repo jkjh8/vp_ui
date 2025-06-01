@@ -4,16 +4,21 @@ import { useApiStore } from 'src/stores/useApi'
 
 export const useFilesStore = defineStore('files', () => {
   const files = ref([])
-  const { apiCallWithLoading, getApi } = useApiStore()
+  const { apiCallWithLoading } = useApiStore()
 
   const getFileList = async () => {
-    const response = await apiCallWithLoading(() => getApi().get('/files'))
+    const response = await apiCallWithLoading('/files', 'GET', null, 'Fetching file list...')
     files.value = response.data
     console.log('File list fetched successfully:', files.value)
   }
 
   const deleteFile = async (file) => {
-    const response = await apiCallWithLoading(() => getApi().delete(`/files/${file.uuid}`))
+    const response = await apiCallWithLoading(
+      `/files/${file.uuid}`,
+      'DELETE',
+      null,
+      `Deleting file ${file.uuid}...`,
+    )
     if (response.status === 200) {
       console.log('File deleted successfully:', file)
       files.value = files.value.filter((f) => f.uuid !== file.uuid)
@@ -23,8 +28,11 @@ export const useFilesStore = defineStore('files', () => {
   }
 
   const downloadFile = async (file) => {
-    const response = await apiCallWithLoading(() =>
-      getApi().get(`/files/download/${file.uuid}`, { responseType: 'blob' }),
+    const response = await apiCallWithLoading(
+      `/files/download/${file.uuid}`,
+      'GET',
+      null,
+      `Downloading file ${file.uuid}...`,
     )
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')

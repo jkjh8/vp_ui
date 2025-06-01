@@ -9,19 +9,33 @@ export const useApiStore = defineStore('api', () => {
     return window.getApi ? window.getApi() : null
   }
 
-  const api = getApi()
-
   const getAddr = () => {
     // boot에서 설정된 전역 함수 사용
     return window.getBaseURL ? window.getBaseURL() : window.location.origin
   }
 
-  const apiCallWithLoading = async (apiFunction, loadingMessage) => {
+  const apiCallWithLoading = async (
+    url,
+    method = 'GET',
+    data = null,
+    loadingMessage = 'Loading...',
+  ) => {
     try {
+      if (typeof url !== 'string') {
+        throw new TypeError(`Invalid URL: ${url}`)
+      }
+
       $q.loading.show({
         message: loadingMessage,
       })
-      const response = await apiFunction()
+
+      const options = {
+        method,
+        url,
+        data,
+      }
+      const api = getApi()
+      const response = await api(options)
       return response
     } catch (error) {
       console.error(`Error during API call:`, error)
@@ -31,5 +45,5 @@ export const useApiStore = defineStore('api', () => {
     }
   }
 
-  return { apiCallWithLoading, api, getApi, getAddr }
+  return { apiCallWithLoading, getApi, getAddr }
 })

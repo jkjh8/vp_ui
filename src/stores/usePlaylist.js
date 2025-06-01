@@ -3,21 +3,23 @@ import { ref } from 'vue'
 import { useApiStore } from 'src/stores/useApi'
 
 export const usePlaylistStore = defineStore('Playlist', () => {
-  const { apiCallWithLoading, api } = useApiStore()
+  const { apiCallWithLoading } = useApiStore()
   const playlist = ref([])
   const currentIndex = ref(0)
   const currentPlaylist = ref(null)
   const isPlaying = ref(false)
 
   const getPlaylist = async () => {
-    const response = await apiCallWithLoading(() => api.get('/playlist'), 'Fetching playlist...')
+    const response = await apiCallWithLoading('/playlist', 'GET', null, 'Fetching playlist...')
     playlist.value = response.data
     console.log('Playlist fetched successfully:', playlist.value)
   }
 
   const addPlaylist = async (playlistData) => {
     const response = await apiCallWithLoading(
-      () => api.post('/playlist', playlistData),
+      '/playlist',
+      'POST',
+      playlistData,
       'Creating playlist...',
     )
     if (response.status === 201) {
@@ -32,7 +34,9 @@ export const usePlaylistStore = defineStore('Playlist', () => {
 
   const updatePlaylist = async (playlistId, playlistData) => {
     const response = await apiCallWithLoading(
-      () => api.put(`/playlist/${playlistId}`, playlistData),
+      `/playlist/${playlistId}`,
+      'PUT',
+      playlistData,
       'Updating playlist...',
     )
     if (response.status === 200) {
@@ -54,7 +58,9 @@ export const usePlaylistStore = defineStore('Playlist', () => {
 
   const deletePlaylist = async (playlistId) => {
     const response = await apiCallWithLoading(
-      () => api.delete(`/playlist/${playlistId}`),
+      `/playlist/${playlistId}`,
+      'DELETE',
+      null,
       'Deleting playlist...',
     )
     if (response.status === 200) {
