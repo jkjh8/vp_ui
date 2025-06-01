@@ -13,7 +13,6 @@ const { playlist } = storeToRefs(playlistStore)
 // 폼 데이터
 const playlistName = ref('')
 const playlistDescription = ref('')
-const isLoading = ref(false)
 
 // 자동 플레이리스트 이름 생성
 const generatePlaylistName = () => {
@@ -25,38 +24,6 @@ const generatePlaylistName = () => {
 onMounted(() => {
   playlistName.value = generatePlaylistName()
 })
-
-// 플레이리스트 추가
-const handleAddPlaylist = async () => {
-  if (!isNameValid.value || isDuplicateName.value) {
-    return
-  }
-
-  try {
-    isLoading.value = true
-
-    const playlistData = {
-      name: playlistName.value.trim(),
-      description: playlistDescription.value.trim(),
-      items: [],
-    }
-
-    await playlistStore.addPlaylist(playlistData)
-
-    // 성공 시 데이터와 함께 다이얼로그 완료
-    onDialogOK(playlistData)
-  } catch (error) {
-    console.error('플레이리스트 추가 실패:', error)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// 취소
-const handleCancel = () => {
-  onDialogCancel()
-}
-
 // 이름 유효성 검사
 const isNameValid = computed(() => {
   return playlistName.value.trim().length > 0
@@ -94,7 +61,7 @@ const isDuplicateName = computed(() => {
                 ? '이미 존재하는 이름입니다.'
                 : ''
           "
-          @keyup.enter="handleAddPlaylist"
+          @keyup.enter="onDialogOK"
         >
           <template v-slot:hint>
             <div class="text-caption text-grey-6">
@@ -116,7 +83,7 @@ const isDuplicateName = computed(() => {
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn round flat icon="cancel" color="grey" @click="handleCancel" :disable="isLoading">
+        <q-btn round flat icon="cancel" color="grey" @click="onDialogCancel">
           <DelayedTooltip msg="취소" />
         </q-btn>
         <q-btn
@@ -124,9 +91,7 @@ const isDuplicateName = computed(() => {
           flat
           icon="check_circle"
           color="primary"
-          @click="handleAddPlaylist"
-          :disable="!isNameValid || isDuplicateName || isLoading"
-          :loading="isLoading"
+          @click="onDialogOK({ name: playlistName, description: playlistDescription })"
         >
           <DelayedTooltip msg="만들기" />
         </q-btn>

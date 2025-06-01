@@ -1,10 +1,14 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref } from 'vue'
 import { useApiStore } from 'src/stores/useApi'
+import { useStatusStore } from 'src/stores/useStatus'
+import { storeToRefs } from 'pinia'
 
 export const usePlaylistStore = defineStore('Playlist', () => {
+  const { pStatus } = storeToRefs(useStatusStore())
   const { apiCallWithLoading } = useApiStore()
   const playlist = ref([])
+  const tracks = ref([])
   const currentIndex = ref(0)
   const currentPlaylist = ref(null)
   const isPlaying = ref(false)
@@ -77,8 +81,23 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     }
   }
 
+  const changeCurrentPlaylist = (index) => {
+    currentPlaylist.value = index
+  }
+
+  const playCurrentPlaylist = () => {
+    if (currentPlaylist.value) {
+      pStatus.value.playlistmode = true
+      isPlaying.value = true
+      console.log('Playing current playlist:', currentPlaylist.value)
+    } else {
+      console.error('No current playlist to play')
+    }
+  }
+
   return {
     playlist,
+    tracks,
     currentIndex,
     currentPlaylist,
     isPlaying,
@@ -86,6 +105,8 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     addPlaylist,
     updatePlaylist,
     deletePlaylist,
+    changeCurrentPlaylist,
+    playCurrentPlaylist,
   }
 })
 

@@ -7,6 +7,7 @@ import MetaData from '../dialogs/metaData.vue'
 import DeleteFile from '../dialogs/deleteFile.vue'
 //pinia
 import { useApiStore } from 'src/stores/useApi'
+import { useStatusStore } from 'src/stores/useStatus'
 import { useFilesStore } from 'src/stores/useFiles'
 import { usePlayerStore } from '/src/stores/usePlayer.js'
 // composables
@@ -15,6 +16,7 @@ import { firstCharUpperCase, humanReadableFileSize } from 'src/composables/useUt
 const $q = useQuasar()
 const { getFileList } = useFilesStore()
 const { files } = storeToRefs(useFilesStore())
+const { pStatus } = storeToRefs(useStatusStore())
 const { getAddr } = useApiStore()
 const { fnPlayById } = usePlayerStore()
 // Fetch the file list when the component is mounted
@@ -138,7 +140,12 @@ const fnDeleteFile = (file) => {
             dense
             icon="play_arrow"
             color="primary"
-            @click="fnPlayById(props.row.number)"
+            @click="
+              () => {
+                pStatus.playlistmode = false
+                fnPlayById(props.row.number)
+              }
+            "
           />
           <q-btn
             round

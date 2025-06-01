@@ -3,6 +3,7 @@ import { useQuasar } from 'quasar'
 // import { usePlaylistStore } from 'src/stores/usePlaylist'
 import delayedTooltip from '../delayedTooltip.vue'
 import addPlaylist from '../dialogs/addPlaylist.vue'
+import { usePlaylistStore } from 'src/stores/usePlaylist'
 
 const $q = useQuasar()
 // const playlistStore = usePlaylistStore()
@@ -14,7 +15,7 @@ const openAddPlaylistDialog = () => {
   })
     .onOk(async (playlistData) => {
       try {
-        console.log('새 플레이리스트 생성됨:', playlistData)
+        await usePlaylistStore().addPlaylist(playlistData)
         $q.notify({
           type: 'positive',
           message: `플레이리스트 "${playlistData.name}"이 생성되었습니다.`,
