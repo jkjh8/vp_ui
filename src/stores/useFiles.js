@@ -1,47 +1,37 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref } from 'vue'
-import { api } from 'src/boot/axios'
+import { useApiStore } from 'src/stores/useApi'
+
 export const useFilesStore = defineStore('files', () => {
   const files = ref([])
+  const { apiCallWithLoading, getApi } = useApiStore()
 
   const getFileList = async () => {
-    try {
-      const response = await api.get('/files')
-      files.value = response.data
-      console.log('File list fetched successfully:', files.value)
-    } catch (error) {
-      console.error('Error fetching file list:', error)
-    }
+    const response = await apiCallWithLoading(() => getApi().get('/files'))
+    files.value = response.data
+    console.log('File list fetched successfully:', files.value)
   }
 
   const deleteFile = async (file) => {
-    try {
-      const r = await api.delete(`/files/${file.uuid}`)
-      if (r.status === 200) {
-        console.log('File deleted successfully:', file)
-        files.value = files.value.filter((f) => f.uuid !== file.uuid)
-      } else {
-        console.error('Failed to delete file:', r.statusText)
-      }
-    } catch (error) {
-      console.error('Error deleting file:', error)
+    const response = await apiCallWithLoading(() => getApi().delete(`/files/${file.uuid}`))
+    if (response.status === 200) {
+      console.log('File deleted successfully:', file)
+      files.value = files.value.filter((f) => f.uuid !== file.uuid)
+    } else {
+      console.error('Failed to delete file:', response.statusText)
     }
   }
 
   const downloadFile = async (file) => {
-    try {
-      const response = await api.get(`/files/download/${file.uuid}`, {
-        responseType: 'blob',
-      })
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', file.filename)
-      document.body.appendChild(link)
-      link.click()
-    } catch (error) {
-      console.error('Error downloading file:', error)
-    }
+    const response = await apiCallWithLoading(() =>
+      getApi().get(`/files/download/${file.uuid}`, { responseType: 'blob' }),
+    )
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', file.filename)
+    document.body.appendChild(link)
+    link.click()
   }
   return { files, getFileList, deleteFile, downloadFile }
 })

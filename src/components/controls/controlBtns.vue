@@ -3,11 +3,11 @@
 import DelayedTooltip from '/src/components/delayedTooltip.vue'
 // pinia
 import { useStatusStore } from '/src/stores/useStatus.js'
+import { usePlayerStore } from '/src/stores/usePlayer.js'
 import { storeToRefs } from 'pinia'
 import { socket } from '/src/boot/socketio.js'
 const { pStatus } = storeToRefs(useStatusStore())
-// composables
-import { fnPlay, fnStop, fnPause, fnSetFullscreen } from '/src/composables/usePlayer'
+const { fnPlay, fnStop, fnPause, fnSetFullscreen } = usePlayerStore()
 
 // methods
 const rotateRepeat = () => {

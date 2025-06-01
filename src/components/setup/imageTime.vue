@@ -1,17 +1,11 @@
 <script setup>
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
-import { api } from 'src/boot/axios'
 
+const { updateImageTime } = useStatusStore()
 const { pStatus } = storeToRefs(useStatusStore())
 const updateValue = async (value) => {
-  try {
-    pStatus.value.image_time = value
-    const r = await api.get(`/status/image_time/${value}`)
-    pStatus.value.image_time = r.data.image_time
-  } catch (error) {
-    console.error(error)
-  }
+  await updateImageTime(value)
 }
 </script>
 

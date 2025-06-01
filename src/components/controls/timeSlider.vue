@@ -2,13 +2,13 @@
 import { ref, computed } from 'vue'
 // pinia
 import { useStatusStore } from 'src/stores/useStatus.js'
+import { usePlayerStore } from '/src/stores/usePlayer.js'
 import { storeToRefs } from 'pinia'
 // composables
 import { msToHMS } from 'src/composables/useTime'
-import { fnUpdateTime } from 'src/composables/usePlayer'
 
 const { pStatus } = storeToRefs(useStatusStore())
-
+const { fnUpdateTime } = usePlayerStore()
 const slideTime = ref(0)
 const start = ref(false)
 

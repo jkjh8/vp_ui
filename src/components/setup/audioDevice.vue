@@ -4,9 +4,10 @@ import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import delayedTooltip from '../delayedTooltip.vue'
 import selectAudioDevice from '../dialogs/selectAudioDevice.vue'
-import { api } from 'src/boot/axios'
 
 const $q = useQuasar()
+const { pStatus } = storeToRefs(useStatusStore())
+
 const openDialog = () => {
   $q.dialog({
     component: selectAudioDevice,
@@ -15,19 +16,9 @@ const openDialog = () => {
       audioDevice: pStatus.value.device.audiodevice,
     },
   }).onOk(async (data) => {
-    try {
-      const r = await api.put('/player/setaudiodevice', {
-        deviceId: data,
-      })
-      console.log(r)
-      pStatus.value.device.audiodevice = data
-    } catch (error) {
-      console.error('Error occurred while setting audio device:', error)
-    }
+    await useStatusStore().setAudioDevice(data)
   })
 }
-
-const { pStatus } = storeToRefs(useStatusStore())
 </script>
 
 <template>

@@ -6,16 +6,18 @@ import { storeToRefs } from 'pinia'
 import MetaData from '../dialogs/metaData.vue'
 import DeleteFile from '../dialogs/deleteFile.vue'
 //pinia
+import { useApiStore } from 'src/stores/useApi'
 import { useFilesStore } from 'src/stores/useFiles'
-import { addr } from 'src/boot/axios'
+import { usePlayerStore } from '/src/stores/usePlayer.js'
 // composables
 import { firstCharUpperCase, humanReadableFileSize } from 'src/composables/useUtils.js'
-import { fnPlayById } from 'src/composables/usePlayer'
 
 const $q = useQuasar()
 const { getFileList } = useFilesStore()
 const { files } = storeToRefs(useFilesStore())
-
+const { getAddr } = useApiStore()
+const { fnPlayById } = usePlayerStore()
+// Fetch the file list when the component is mounted
 onMounted(async () => {
   await getFileList()
 })
@@ -101,13 +103,13 @@ const fnDeleteFile = (file) => {
             >
               <q-img
                 v-if="props.row.thumbnail"
-                :src="`${addr}/api/files/thumbnail/${props.row.uuid}`"
+                :src="`${getAddr()}/api/files/thumbnail/${props.row.uuid}`"
                 style="width: 50px; cursor: pointer"
                 :alt="props.row.originalname"
               >
                 <q-menu anchor="bottom right" self="top right">
                   <q-img
-                    :src="`${addr}/api/files/thumbnail/${props.row.uuid}`"
+                    :src="`${getAddr()}/api/files/thumbnail/${props.row.uuid}`"
                     style="
                       width: 200px;
                       max-width: 300px;

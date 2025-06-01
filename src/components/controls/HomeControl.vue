@@ -3,12 +3,13 @@ import ControlBtns from './controlBtns.vue'
 import TimeSlider from './timeSlider.vue'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
-import { addr } from 'src/boot/axios'
 import { humanReadableFileSize } from 'src/composables/useUtils'
 import { firstCharUpperCase } from 'src/composables/useUtils'
 import { msToHMS } from 'src/composables/useTime'
+import { useApiStore } from 'src/stores/useApi'
 
 const { pStatus } = storeToRefs(useStatusStore())
+const { getAddr } = useApiStore()
 </script>
 
 <template>
@@ -19,7 +20,7 @@ const { pStatus } = storeToRefs(useStatusStore())
           <div class="row items-center q-gutter-x-md">
             <div>
               <q-img
-                :src="`${addr}/api/files/thumbnail/${pStatus.current.uuid}`"
+                :src="`${getAddr()}/api/files/thumbnail/${pStatus.current.uuid}`"
                 style="
                   width: 320px;
                   border: 1px solid #ccc;

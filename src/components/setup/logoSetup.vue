@@ -5,9 +5,10 @@ import { storeToRefs } from 'pinia'
 import selectLogo from '../dialogs/selectLogo.vue'
 import logoSize from '../dialogs/logoSize.vue'
 import DelayedTooltip from '../delayedTooltip.vue'
-import { api } from 'src/boot/axios.js'
-const { pStatus } = storeToRefs(useStatusStore())
+const { updateLogo, updateLogoSize, updateLogoVisibility } = useStatusStore()
+
 const $q = useQuasar()
+const { pStatus } = storeToRefs(useStatusStore())
 
 const openDialog = () => {
   $q.dialog({
@@ -16,14 +17,8 @@ const openDialog = () => {
       logo: pStatus.value.logo.name,
     },
     persistent: true,
-  }).onOk(async (data) => {
-    try {
-      const r = await api.get('/status/logo/sel/' + encodeURIComponent(data))
-      pStatus.logo = r.data.pStatus.logo
-      useStatusStore().updateStatus('logo', pStatus.logo)
-    } catch (error) {
-      console.error('Error selecting logo:', error)
-    }
+  }).onOk((data) => {
+    updateLogo(data)
   })
 }
 
@@ -35,28 +30,13 @@ const openDialogSize = () => {
       height: pStatus.value.logo.height,
     },
     persistent: true,
-  }).onOk(async (data) => {
-    try {
-      const r = await api.put('/status/logo/size', {
-        width: data.width,
-        height: data.height,
-      })
-      pStatus.logo = r.data.pStatus.logo
-      useStatusStore().updateStatus('logo', pStatus.logo)
-    } catch (error) {
-      console.error('Error updating logo size:', error)
-    }
+  }).onOk((data) => {
+    updateLogoSize(data.width, data.height)
   })
 }
 
-const updateLogoShow = async (value) => {
-  try {
-    const r = await api.get('/status/logo/show/' + (value ? 'true' : 'false'))
-    console.log(r)
-    pStatus.logo = r.data.pStatus.logo
-  } catch (error) {
-    console.error('Error updating logo visibility:', error)
-  }
+const updateLogoShow = (value) => {
+  updateLogoVisibility(value)
 }
 </script>
 

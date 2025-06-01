@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar, useDialogPluginComponent } from 'quasar'
 import DelayedTooltip from '../delayedTooltip.vue'
-import { api, addr } from 'src/boot/axios.js'
 import updateLogoFile from '../dialogs/updateLogoFile.vue'
+import { useApiStore } from 'src/stores/useApi'
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
+const { getAddr, getApi, apiCallWithLoading } = useApiStore()
 const $q = useQuasar()
 const logoFiles = ref([])
 const selected = ref(null)
@@ -33,16 +34,10 @@ const openDialogFileUpload = () => {
 }
 
 const getLogoFiles = async () => {
-  try {
-    const response = await api.get('/status/logo')
+  await apiCallWithLoading(async () => {
+    const response = await getApi().get('/status/logo')
     logoFiles.value = response.data
-  } catch (error) {
-    console.error('Error fetching logo files:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to load logo files.',
-    })
-  }
+  }, 'Fetching logo files...')
 }
 
 onMounted(async () => {
@@ -91,14 +86,14 @@ onMounted(async () => {
             <q-item-section avatar>
               <template v-if="file && (file.endsWith('.svg') || file.endsWith('.SVG'))">
                 <img
-                  :src="`${addr}/api/status/logo/img/${encodeURIComponent(file)}`"
+                  :src="`${getAddr()}/api/status/logo/img/${encodeURIComponent(file)}`"
                   :alt="file"
                   style="width: 50px; height: 50px; object-fit: contain"
                 />
               </template>
               <template v-else>
                 <q-img
-                  :src="`${addr}/api/status/logo/img/${encodeURIComponent(file)}`"
+                  :src="`${getAddr()}/api/status/logo/img/${encodeURIComponent(file)}`"
                   :alt="file"
                   style="width: 50px"
                 />

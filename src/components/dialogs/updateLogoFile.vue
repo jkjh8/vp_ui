@@ -1,15 +1,15 @@
 <script setup>
 import { useQuasar, useDialogPluginComponent } from 'quasar'
 import DelayedTooltip from '../delayedTooltip.vue'
-import { addr } from 'src/boot/axios.js'
-
+import { useApiStore } from 'src/stores/useApi'
 import { humanReadableFileSize } from 'src/composables/useUtils'
 
 const $q = useQuasar()
 const { dialogRef, onDialogOK } = useDialogPluginComponent()
+const { getAddr } = useApiStore()
 
 const getUrl = () => {
-  return `${addr}/api/status/logo`
+  return `${getAddr()}/status/logo`
 }
 
 const onRejected = (rejectEntries) => {

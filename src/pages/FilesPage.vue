@@ -4,7 +4,7 @@ import FilesList from 'src/components/files/filesList.vue'
 </script>
 
 <template>
-  <div class="q-pa-sm">
+  <div class="q-pa-md">
     <q-card flat>
       <q-card-section class="q-py-none">
         <FilesHeader />
