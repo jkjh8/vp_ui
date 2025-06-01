@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
 import { storeToRefs } from 'pinia'
 const playlistStore = usePlaylistStore()
-const { playlist, currentPlaylist } = storeToRefs(playlistStore)
+const { playlists, currentPlaylist } = storeToRefs(playlistStore)
 
 onMounted(() => {
   playlistStore.getPlaylist()
@@ -13,7 +13,7 @@ onMounted(() => {
 <template>
   <q-list class="q-pa-none q-mt-none">
     <q-item
-      v-for="(item, index) in playlist"
+      v-for="(item, index) in playlists"
       :key="index"
       :class="{ active: currentPlaylist === item._id, 'bg-yellow-2': currentPlaylist === item._id }"
       style="border-radius: 1rem; margin-bottom: 0.5rem"

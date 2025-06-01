@@ -7,16 +7,15 @@ import { storeToRefs } from 'pinia'
 export const usePlaylistStore = defineStore('Playlist', () => {
   const { pStatus } = storeToRefs(useStatusStore())
   const { apiCallWithLoading } = useApiStore()
-  const playlist = ref([])
-  const tracks = ref([])
+  const playlists = ref([])
   const currentIndex = ref(0)
   const currentPlaylist = ref(null)
   const isPlaying = ref(false)
 
   const getPlaylist = async () => {
     const response = await apiCallWithLoading('/playlist', 'GET', null, 'Fetching playlist...')
-    playlist.value = response.data
-    console.log('Playlist fetched successfully:', playlist.value)
+    playlists.value = response.data
+    console.log('Playlist fetched successfully:', playlists.value)
   }
 
   const addPlaylist = async (playlistData) => {
@@ -44,9 +43,9 @@ export const usePlaylistStore = defineStore('Playlist', () => {
       'Updating playlist...',
     )
     if (response.status === 200) {
-      const index = playlist.value.findIndex((p) => p._id === playlistId)
+      const index = playlists.value.findIndex((p) => p._id === playlistId)
       if (index !== -1) {
-        playlist.value[index] = response.data
+        playlists.value[index] = response.data
       }
       if (currentPlaylist.value?._id === playlistId) {
         currentPlaylist.value = response.data
@@ -68,7 +67,7 @@ export const usePlaylistStore = defineStore('Playlist', () => {
       'Deleting playlist...',
     )
     if (response.status === 200) {
-      playlist.value = playlist.value.filter((p) => p._id !== playlistId)
+      playlists.value = playlists.value.filter((p) => p._id !== playlistId)
       if (currentPlaylist.value?._id === playlistId) {
         currentPlaylist.value = null
       }
@@ -96,8 +95,7 @@ export const usePlaylistStore = defineStore('Playlist', () => {
   }
 
   return {
-    playlist,
-    tracks,
+    playlists,
     currentIndex,
     currentPlaylist,
     isPlaying,
