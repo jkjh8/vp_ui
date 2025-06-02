@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useQuasar, useDialogPluginComponent } from 'quasar'
 import DelayedTooltip from '../delayedTooltip.vue'
 import updateLogoFile from '../dialogs/updateLogoFile.vue'
+import deleteFile from './deleteFile.vue'
 import { useApiStore } from 'src/stores/useApi'
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
@@ -33,6 +34,22 @@ const openDialogFileUpload = () => {
     })
 }
 
+const openDialogDeleteFile = (file) => {
+  $q.dialog({
+    component: deleteFile,
+    componentProps: {
+      fileName: file,
+    },
+    persistent: true,
+  })
+    .onOk(async () => {
+      await deleteLogoFile(file)
+    })
+    .onCancel(() => {
+      console.log('Delete file dialog cancelled')
+    })
+}
+
 const getLogoFiles = async () => {
   await apiCallWithLoading('/status/logo', 'GET', null, 'Fetching logo files...')
     .then((response) => {
@@ -41,6 +58,20 @@ const getLogoFiles = async () => {
     .catch((error) => {
       console.error('Error fetching logo files:', error)
     })
+}
+
+const deleteLogoFile = async (file) => {
+  try {
+    await apiCallWithLoading(
+      `/status/logo/${encodeURIComponent(file)}`,
+      'DELETE',
+      null,
+      'Deleting logo file...',
+    )
+    await getLogoFiles() // Refresh the list after deletion
+  } catch (error) {
+    console.error('Error deleting logo file:', error)
+  }
 }
 
 onMounted(async () => {
@@ -104,6 +135,12 @@ onMounted(async () => {
             </q-item-section>
             <q-item-section>
               <q-item-label>{{ file }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn round flat color="negative" icon="delete" @click="openDialogDeleteFile(file)">
+                <DelayedTooltip msg="Delete this logo file" />
+                ></q-btn
+              >
             </q-item-section>
           </q-item>
         </q-list>
