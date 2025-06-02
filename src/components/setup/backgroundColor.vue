@@ -1,10 +1,13 @@
 <script setup>
 import { useQuasar } from 'quasar'
+import { useApiStore } from 'src/stores/useApi'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import colorPicker from '../dialogs/colorPicker.vue'
 import DelayedTooltip from '../delayedTooltip.vue'
-const { updateBackgroundColor, isBright } = useStatusStore()
+const { isBright } = useStatusStore()
+const { apiCallWithLoading } = useApiStore()
+
 const { pStatus } = storeToRefs(useStatusStore())
 const $q = useQuasar()
 
@@ -14,19 +17,32 @@ const openDialog = () => {
     componentProps: {
       background: pStatus.value.background,
     },
-    persistent: true,
-  }).onOk((data) => {
-    // rgb에서 hex로 변환
-    if (data.startsWith('rgb')) {
-      const rgb = data.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
-      if (rgb) {
-        const r = parseInt(rgb[1]).toString(16).padStart(2, '0')
-        const g = parseInt(rgb[2]).toString(16).padStart(2, '0')
-        const b = parseInt(rgb[3]).toString(16).padStart(2, '0')
-        data = `#${r}${g}${b}`
+  }).onOk(async (color) => {
+    try {
+      // rgb에서 hex로 변환
+      if (color.startsWith('rgb')) {
+        const rgb = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+        if (rgb) {
+          const r = parseInt(rgb[1]).toString(16).padStart(2, '0')
+          const g = parseInt(rgb[2]).toString(16).padStart(2, '0')
+          const b = parseInt(rgb[3]).toString(16).padStart(2, '0')
+          color = `#${r}${g}${b}`
+        }
       }
+      await apiCallWithLoading(
+        '/player/background',
+        'POST',
+        { color },
+        `Updating background color to ${color}...`,
+      )
+      pStatus.value.background = color
+      $q.notify({
+        type: 'positive',
+        message: `Background color updated to ${color}`,
+      })
+    } catch (error) {
+      console.error('Error occurred while converting color:', error)
     }
-    updateBackgroundColor(data)
   })
 }
 </script>

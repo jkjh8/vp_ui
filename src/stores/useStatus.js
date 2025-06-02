@@ -6,7 +6,7 @@ export const useStatusStore = defineStore('status', () => {
   const { apiCallWithLoading } = useApiStore()
 
   const pStatus = ref({
-    playlistmode: false,
+    playlistMode: false,
     nics: [],
     darkmode: false,
     current: {
@@ -75,20 +75,6 @@ export const useStatusStore = defineStore('status', () => {
     )
     pStatus.value.device.audiodevice = deviceId
     return response
-  }
-
-  const updateBackgroundColor = async (color) => {
-    // rgb에서 hex로 변환
-    if (color.startsWith('rgb')) {
-      const rgb = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
-      if (rgb) {
-        const r = parseInt(rgb[1]).toString(16).padStart(2, '0')
-        const g = parseInt(rgb[2]).toString(16).padStart(2, '0')
-        const b = parseInt(rgb[3]).toString(16).padStart(2, '0')
-        color = `#${r}${g}${b}`
-      }
-    }
-    await updateStatus('background', color)
   }
 
   const isBright = (color) => {
@@ -175,8 +161,6 @@ export const useStatusStore = defineStore('status', () => {
     pStatus,
     updateStatus,
     setAudioDevice,
-    apiCallWithLoading,
-    updateBackgroundColor,
     isBright,
     updateImageTime,
     updateLogo,

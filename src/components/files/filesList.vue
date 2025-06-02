@@ -142,7 +142,7 @@ const fnDeleteFile = (file) => {
             color="primary"
             @click="
               () => {
-                pStatus.playlistmode = false
+                pStatus.playlistMode = false
                 fnPlayById(props.row.number)
               }
             "

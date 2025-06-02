@@ -110,7 +110,7 @@ export const usePlaylistStore = defineStore('Playlist', () => {
 
   const playCurrentPlaylist = () => {
     if (currentPlaylist.value) {
-      pStatus.value.playlistmode = true
+      pStatus.value.playlistMode = true
       isPlaying.value = true
       console.log('Playing current playlist:', currentPlaylist.value)
     } else {

@@ -14,8 +14,8 @@ const rotateRepeat = () => {
   if (pStatus.value.repeat === 'none') {
     pStatus.value.repeat = 'all'
   } else if (pStatus.value.repeat === 'all') {
-    pStatus.value.repeat = pStatus.value.playlistmode ? 'repeat_one' : 'none'
-  } else if (pStatus.value.playlistmode && pStatus.value.repeat === 'repeat_one') {
+    pStatus.value.repeat = pStatus.value.playlistMode ? 'repeat_one' : 'none'
+  } else if (pStatus.value.playlistMode && pStatus.value.repeat === 'repeat_one') {
     pStatus.value.repeat = 'single'
   } else if (pStatus.value.repeat === 'single') {
     pStatus.value.repeat = 'none'
@@ -27,7 +27,7 @@ const rotateRepeat = () => {
 <template>
   <div class="row no-wrap justify-center items-center q-mb-sm q-gutter-x-md">
     <!-- rewind -->
-    <div v-if="pStatus.playlistmode">
+    <div v-if="pStatus.playlistMode">
       <q-btn flat round icon="fast_rewind" color="primary">
         <DelayedTooltip msg="Rewind" />
       </q-btn>
@@ -55,7 +55,7 @@ const rotateRepeat = () => {
       </q-btn>
     </div>
     <!-- forward button -->
-    <div v-if="pStatus.playlistmode">
+    <div v-if="pStatus.playlistMode">
       <q-btn flat round icon="fast_forward" color="primary">
         <DelayedTooltip msg="Forward" />
       </q-btn>
@@ -83,7 +83,7 @@ const rotateRepeat = () => {
         <DelayedTooltip msg="Repeat" />
       </q-btn>
       <q-btn
-        v-else-if="pStatus.playlistmode && pStatus.repeat === 'repeat_one'"
+        v-else-if="pStatus.playlistMode && pStatus.repeat === 'repeat_one'"
         flat
         round
         icon="repeat_one"
