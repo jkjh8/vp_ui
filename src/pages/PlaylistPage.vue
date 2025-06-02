@@ -14,7 +14,7 @@ const splitterModel = ref(50) // 기본값 50% (좌우 동일)
         <playlistHeader />
       </q-card-section>
       <q-card-section>
-        <q-splitter v-model="splitterModel" style="height: 70vh">
+        <q-splitter v-model="splitterModel" separator-style="background-color: #fff">
           <template v-slot:before>
             <div class="q-pr-sm">
               <playlistView />

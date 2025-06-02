@@ -12,71 +12,95 @@ export const usePlaylistStore = defineStore('Playlist', () => {
   const currentPlaylist = ref(null)
   const isPlaying = ref(false)
 
-  const getPlaylist = async () => {
+  const getPlaylists = async () => {
     const response = await apiCallWithLoading('/playlist', 'GET', null, 'Fetching playlist...')
     playlists.value = response.data
     console.log('Playlist fetched successfully:', playlists.value)
   }
 
   const addPlaylist = async (playlistData) => {
-    const response = await apiCallWithLoading(
-      '/playlist',
-      'POST',
-      playlistData,
-      'Creating playlist...',
-    )
-    if (response.status === 201) {
-      console.log('Playlist added successfully:', response.data)
-      await getPlaylist()
+    try {
+      const response = await apiCallWithLoading(
+        '/playlist',
+        'POST',
+        playlistData,
+        'Creating playlist...',
+      )
+      await getPlaylists()
       return response.data
-    } else {
-      console.error('Failed to add playlist:', response.statusText)
-      throw new Error(response.statusText)
+    } catch (error) {
+      console.error('Failed to add playlist:', error)
     }
   }
 
   const updatePlaylist = async (playlistId, playlistData) => {
-    const response = await apiCallWithLoading(
-      `/playlist/${playlistId}`,
-      'PUT',
-      playlistData,
-      'Updating playlist...',
-    )
-    if (response.status === 200) {
-      const index = playlists.value.findIndex((p) => p._id === playlistId)
-      if (index !== -1) {
-        playlists.value[index] = response.data
-      }
-      if (currentPlaylist.value?._id === playlistId) {
-        currentPlaylist.value = response.data
-      }
-      console.log('Playlist updated successfully:', response.data)
-      await getPlaylist()
+    try {
+      const response = await apiCallWithLoading(
+        `/playlist`,
+        'PUT',
+        { ...playlistData, id: playlistId },
+        'Updating playlist...',
+      )
+      await getPlaylists()
       return response.data
-    } else {
-      console.error('Failed to update playlist:', response.statusText)
-      throw new Error(response.statusText)
+    } catch (error) {
+      console.error('Failed to update playlist:', error)
+    }
+  }
+
+  const updateTracksInPlaylist = async (playlistId, tracksData) => {
+    try {
+      // 해당 플레이리스트의 트랙에 추가될 플레이 리스트 트랙들을 업데이트합니다.
+      const playlist = playlists.value.find((p) => p._id === playlistId)
+      if (!playlist) {
+        throw new Error('Playlist not found')
+      }
+      const tracks = [...(playlist.tracks || []), ...tracksData].map((track) => track.uuid)
+      const response = await apiCallWithLoading(
+        `/playlist`,
+        'PUT',
+        { tracks: tracks, id: playlistId },
+        'Updating tracks in playlist...',
+      )
+      await getPlaylists()
+      return response.data
+    } catch (error) {
+      console.error('Error updating tracks in playlist:', error)
     }
   }
 
   const deletePlaylist = async (playlistId) => {
-    const response = await apiCallWithLoading(
-      `/playlist/${playlistId}`,
-      'DELETE',
-      null,
-      'Deleting playlist...',
-    )
-    if (response.status === 200) {
-      playlists.value = playlists.value.filter((p) => p._id !== playlistId)
-      if (currentPlaylist.value?._id === playlistId) {
-        currentPlaylist.value = null
+    try {
+      const response = await apiCallWithLoading(
+        `/playlist/${playlistId}`,
+        'DELETE',
+        null,
+        'Deleting playlist...',
+      )
+      await getPlaylists()
+      return response.data
+    } catch (error) {
+      console.error('Error deleting playlist:', error)
+    }
+  }
+
+  const removeTrackFromPlaylist = async (playlistId, idx) => {
+    try {
+      const playlist = playlists.value.find((p) => p._id === playlistId)
+      if (!playlist) {
+        throw new Error('Playlist not found')
       }
-      console.log('Playlist deleted successfully:', playlistId)
-      await getPlaylist()
-      return true
-    } else {
-      console.error('Failed to delete playlist:', response.statusText)
-      throw new Error(response.statusText)
+      playlist.tracks.splice(idx, 1)
+      const response = await apiCallWithLoading(
+        `/playlist`,
+        'PUT',
+        { tracks: playlist.tracks.map((track) => track.uuid), id: playlistId },
+        'Removing track from playlist...',
+      )
+      await getPlaylists()
+      return response.data
+    } catch (error) {
+      console.error('Error removing track from playlist:', error)
     }
   }
 
@@ -99,11 +123,13 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     currentIndex,
     currentPlaylist,
     isPlaying,
-    getPlaylist,
+    getPlaylists,
     addPlaylist,
     updatePlaylist,
     deletePlaylist,
     changeCurrentPlaylist,
+    updateTracksInPlaylist,
+    removeTrackFromPlaylist,
     playCurrentPlaylist,
   }
 })

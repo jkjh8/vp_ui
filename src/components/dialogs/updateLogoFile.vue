@@ -9,7 +9,7 @@ const { dialogRef, onDialogOK } = useDialogPluginComponent()
 const { getAddr } = useApiStore()
 
 const getUrl = () => {
-  return `${getAddr()}/status/logo`
+  return `${getAddr()}/api/status/logo`
 }
 
 const onRejected = (rejectEntries) => {
