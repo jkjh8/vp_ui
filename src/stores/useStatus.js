@@ -107,9 +107,9 @@ export const useStatusStore = defineStore('status', () => {
 
   const updateImageTime = async (value) => {
     const response = await apiCallWithLoading(
-      '/status/update',
-      'POST',
-      { key: 'image_time', value },
+      `/status/image_time/${value}`,
+      'GET',
+      null,
       `Updating image time to ${value}...`,
     )
     if (response.data.pStatus) {
