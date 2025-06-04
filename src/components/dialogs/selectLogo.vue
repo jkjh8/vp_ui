@@ -139,8 +139,7 @@ onMounted(async () => {
             <q-item-section side>
               <q-btn round flat color="negative" icon="delete" @click="openDialogDeleteFile(file)">
                 <DelayedTooltip msg="Delete this logo file" />
-                ></q-btn
-              >
+              </q-btn>
             </q-item-section>
           </q-item>
         </q-list>

@@ -1,9 +1,34 @@
 <script setup>
 import { onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
 import { storeToRefs } from 'pinia'
+import addPlaylist from 'src/components/dialogs/addPlaylist.vue'
+
 const playlistStore = usePlaylistStore()
 const { playlists, currentPlaylist } = storeToRefs(playlistStore)
+
+const $q = useQuasar()
+
+const editPlaylist = (playlist) => {
+  $q.dialog({
+    component: addPlaylist,
+    componentProps: {
+      initialData: playlist,
+    },
+  }).onOk(async (data) => {
+    await playlistStore.updatePlaylist(data._id, {
+      name: data.name,
+      description: data.description,
+      playlistId: data.playlistId,
+    })
+    await playlistStore.getPlaylists()
+    $q.notify({
+      type: 'positive',
+      message: 'Playlist updated successfully.',
+    })
+  })
+}
 
 onMounted(() => {
   playlistStore.getPlaylists()
@@ -40,29 +65,32 @@ onMounted(() => {
           <q-item-label caption>{{ item.description }}</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <div class="row items-center q-gutter-x-xs">
-            <q-icon
-              class="cursor-pointer"
-              name="edit"
-              size="xs"
+          <div class="row items-center">
+            <q-btn
+              flat
+              round
+              size="sm"
+              icon="edit"
               color="primary"
-              @click.stop.prevent="playlistStore.editPlaylist(item._id)"
-            />
-            <q-icon
-              class="cursor-pointer"
-              name="delete"
-              size="xs"
+              @click.stop.prevent="editPlaylist(item)"
+            ></q-btn>
+            <q-btn
+              flat
+              round
+              size="sm"
+              icon="delete"
               color="negative"
               @click.stop.prevent="playlistStore.deletePlaylist(item._id)"
-            />
-            <q-separator vertical />
-            <q-icon
-              class="cursor-pointer"
-              name="play_arrow"
+            ></q-btn>
+            <q-separator vertical class="q-mx-sm" />
+            <q-btn
+              flat
+              round
               size="sm"
+              icon="play_arrow"
               color="primary"
-              @click.stop.prevent="playlistStore.playPlaylist(item._id)"
-            />
+              @click.stop.prevent="playlistStore.playlistPlay(item.playlistId)"
+            ></q-btn>
           </div>
         </q-item-section>
       </q-item>

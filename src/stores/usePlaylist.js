@@ -118,6 +118,17 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     }
   }
 
+  const playlistPlay = async (index, track = 0) => {
+    console.log('playlistPlay called with index:', index, 'and track:', track)
+    const response = await apiCallWithLoading(
+      `/playlist/play?playlistId=${index}&trackIndex=${track}`,
+      'GET',
+      null,
+      'Playing playlist...',
+    )
+    console.log('Playlist play response:', response)
+  }
+
   return {
     playlists,
     currentIndex,
@@ -131,6 +142,7 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     updateTracksInPlaylist,
     removeTrackFromPlaylist,
     playCurrentPlaylist,
+    playlistPlay,
   }
 })
 

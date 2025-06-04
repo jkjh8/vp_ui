@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import playlistHeader from 'src/components/playlists/playlistHeader.vue'
 import playlistView from 'src/components/playlists/playlistView.vue'
-import listView from 'src/components/playlists/listView.vue'
+import listView from 'src/components/playlists/TracksView.vue'
 
 const splitterModel = ref(50) // 기본값 50% (좌우 동일)
 </script>
