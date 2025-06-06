@@ -25,6 +25,7 @@ export const useStatusStore = defineStore('status', () => {
       file: '',
       width: 0,
       height: 0,
+      size: 0,
       x: 0,
       y: 0,
     },
@@ -131,11 +132,11 @@ export const useStatusStore = defineStore('status', () => {
     await updateStatus('logo', pStatus.value.logo)
   }
 
-  const updateLogoSize = async (width, height) => {
+  const updateLogoSize = async (size) => {
     const response = await apiCallWithLoading(
       '/status/logo/size',
       'PUT',
-      { width, height },
+      { size },
       'Updating logo size...',
     )
     if (!response.data.pStatus || !response.data.pStatus.logo) {

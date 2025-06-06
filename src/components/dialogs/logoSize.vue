@@ -5,21 +5,16 @@ import DelayedTooltip from '../delayedTooltip.vue'
 
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-const w = ref(0)
-const h = ref(0)
+const editSize = ref(0)
 
 const props = defineProps({
-  width: {
-    type: Number,
-  },
-  height: {
+  size: {
     type: Number,
   },
 })
 
 onMounted(async () => {
-  w.value = props.width || 0
-  h.value = props.height || 0
+  editSize.value = props.size || 0
 })
 </script>
 
@@ -34,42 +29,22 @@ onMounted(async () => {
       </q-card-section>
 
       <q-card-section>
-        <div class="row justify-center items-center q-gutter-x-sm">
-          <q-input
-            v-model.number="w"
-            style="width: 100px"
-            filled
-            dense
-            type="number"
-            label="Width"
-            min="0"
-            :rules="[(val) => val >= 0 || 'Width must be a positive number']"
-          />
-          <span>X</span>
-          <q-input
-            v-model.number="h"
-            style="width: 100px"
-            filled
-            dense
-            type="number"
-            label="Height"
-            min="0"
-            :rules="[(val) => val >= 0 || 'Height must be a positive number']"
-          />
-        </div>
+        <q-input
+          v-model.number="editSize"
+          filled
+          dense
+          type="number"
+          label="Size"
+          min="0"
+          :rules="[(val) => val >= 0 || 'Size must be a positive number']"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn flat round icon="cancel" color="negative" @click="onDialogCancel">
           <DelayedTooltip msg="Cancel the selection" />
         </q-btn>
-        <q-btn
-          flat
-          round
-          color="primary"
-          icon="check_circle"
-          @click="onDialogOK({ width: w, height: h })"
-        >
+        <q-btn flat round color="primary" icon="check_circle" @click="onDialogOK(editSize)">
           <DelayedTooltip msg="Select the first logo file" />
         </q-btn>
       </q-card-actions>

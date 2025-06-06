@@ -19,7 +19,19 @@ const props = defineProps({
   },
 })
 
-const isImage = computed(() => pStatus.value.current?.is_image)
+const current = computed(() => {
+  return (
+    pStatus.value.player?.[pStatus.value.activePlayerId] || {
+      time: 0,
+      duration: 0,
+      file: {},
+    }
+  )
+})
+
+const isImage = computed(() => {
+  return current.value?.file?.is_image ?? false
+})
 
 const updateTimeFromSlide = (t) => {
   slideTime.value = t
@@ -48,18 +60,18 @@ const panning = (e) => {
   <div class="row no-wrap q-pt-none q-mt-none q-px-md q-gutter-x-sm items-center">
     <q-slider
       class="q-mt-none q-pt-none"
-      :model-value="pStatus.player.time / 1000"
+      :model-value="current.time / 1000"
       :min="0"
       :step="0.01"
-      :max="pStatus.player.duration / 1000"
+      :max="current.duration / 1000"
       label
-      :label-value="msToHMS(pStatus.player.time / 1000)"
+      :label-value="msToHMS(current.time / 1000)"
       @update:model-value="updateTimeFromSlide"
       @pan="panning"
       :disable="isImage"
     />
     <div v-if="props.time" class="gt-xs text-caption">
-      {{ msToHMS(pStatus.player.time / 1000) }}/{{ msToHMS(pStatus.player.duration / 1000) }}
+      {{ msToHMS(current.time / 1000) }}/{{ msToHMS(current.duration / 1000) }}
     </div>
   </div>
 </template>

@@ -26,12 +26,11 @@ const openDialogSize = () => {
   $q.dialog({
     component: logoSize,
     componentProps: {
-      width: pStatus.value.logo.width,
-      height: pStatus.value.logo.height,
+      size: pStatus.value.logo.size,
     },
     persistent: true,
   }).onOk((data) => {
-    updateLogoSize(data.width, data.height)
+    updateLogoSize(data)
   })
 }
 
@@ -67,7 +66,7 @@ const updateLogoShow = (value) => {
         <q-icon name="square_foot" size="sm" color="primary"></q-icon>
         <span class="q-ml-sm text-bold">Logo Size</span>
         <span class="q-ml-sm text-caption">
-          {{ pStatus.logo.width }} x {{ pStatus.logo.height }}
+          {{ pStatus.logo.size }}
         </span>
       </div>
       <q-btn round flat color="primary" icon="edit" @click="openDialogSize">

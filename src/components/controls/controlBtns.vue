@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 // components
 import DelayedTooltip from '/src/components/delayedTooltip.vue'
 // pinia
@@ -8,6 +9,17 @@ import { storeToRefs } from 'pinia'
 import { socket } from '/src/boot/socketio.js'
 const { pStatus } = storeToRefs(useStatusStore())
 const { fnPlay, fnStop, fnPause, fnSetFullscreen } = usePlayerStore()
+
+const current = computed(() => {
+  return (
+    pStatus.value.player?.[pStatus.value.activePlayerId] || {
+      time: 0,
+      duration: 0,
+      file: {},
+      is_playing: 0,
+    }
+  )
+})
 
 // methods
 const rotateRepeat = () => {
@@ -32,10 +44,11 @@ const rotateRepeat = () => {
         <DelayedTooltip msg="Rewind" />
       </q-btn>
     </div>
+    qu
     <!-- play button -->
     <div>
       <q-btn
-        v-if="pStatus.player.playing !== 1"
+        v-if="current.is_playing !== 1"
         flat
         round
         icon="play_arrow"

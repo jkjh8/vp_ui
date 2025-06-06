@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import ControlBtns from './controlBtns.vue'
 import TimeSlider from './timeSlider.vue'
 import { useStatusStore } from 'src/stores/useStatus'
@@ -10,6 +11,10 @@ import { useApiStore } from 'src/stores/useApi'
 
 const { pStatus } = storeToRefs(useStatusStore())
 const { getAddr } = useApiStore()
+
+const currentPlayer = computed(() => {
+  return pStatus.value.player[pStatus.value.activePlayerId]
+})
 </script>
 
 <template>
@@ -20,7 +25,7 @@ const { getAddr } = useApiStore()
           <div class="row items-center q-gutter-x-md">
             <div>
               <q-img
-                :src="`${getAddr()}/api/files/thumbnail/${pStatus.current.uuid}`"
+                :src="`${getAddr()}/api/files/thumbnail/${currentPlayer.file?.uuid}`"
                 style="
                   width: 320px;
                   border: 1px solid #ccc;
@@ -32,41 +37,41 @@ const { getAddr } = useApiStore()
             </div>
             <div>
               <div class="text-subtitle2">Current File is...</div>
-              <div v-if="pStatus.current && pStatus.current.fieldname" class="">
+              <div v-if="currentPlayer.file" class="">
                 <div class="q-gutter-x-xs">
                   <span> File: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ pStatus.current.fieldname }}
+                    {{ currentPlayer.file.fieldname }}
                   </span>
                 </div>
                 <div class="q-gutter-x-xs">
                   <span> Size: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ humanReadableFileSize(pStatus.current.size) }}
+                    {{ humanReadableFileSize(currentPlayer.file.size) }}
                   </span>
                 </div>
                 <div class="q-gutter-x-xs">
                   <span> Play ID: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ pStatus.current.number }}
+                    {{ currentPlayer.file.number }}
                   </span>
                 </div>
                 <div class="q-gutter-x-xs">
                   <span> Type: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ firstCharUpperCase(pStatus.current.mimetype) }}
+                    {{ firstCharUpperCase(currentPlayer.file.mimetype) }}
                   </span>
                 </div>
                 <div class="q-gutter-x-xs">
                   <span> Duration: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ msToHMS(pStatus.player.duration / 1000) }}
+                    {{ msToHMS(currentPlayer.duration / 1000) }}
                   </span>
                 </div>
                 <div class="q-gutter-x-xs">
                   <span> Time: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ msToHMS(pStatus.player.time / 1000) }}
+                    {{ msToHMS(currentPlayer.time / 1000) }}
                   </span>
                 </div>
               </div>

@@ -18,7 +18,11 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnPlay = async () => {
     try {
-      const r = await apiCallWithLoading('/player/play', 'GET', null)
+      const r = await apiCallWithLoading(
+        `/player/play/${pStatus.value.activePlayerId}`,
+        'GET',
+        null,
+      )
       console.log(r)
     } catch (error) {
       pStatus.current = {}
@@ -37,7 +41,11 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnPause = async () => {
     try {
-      const r = await apiCallWithLoading('/player/pause', 'GET', null)
+      const r = await apiCallWithLoading(
+        `/player/pause/${pStatus.value.activePlayerId}`,
+        'GET',
+        null,
+      )
       console.log(r)
     } catch (error) {
       console.error('Error pausing media:', error)
@@ -46,7 +54,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnUpdateTime = async (time) => {
     try {
-      socket.emit('event', { type: 'time', value: time })
+      socket.emit('event', { type: 'time', value: time, idx: pStatus.value.activePlayerId })
     } catch (error) {
       console.error('Error updating time:', error)
     }
