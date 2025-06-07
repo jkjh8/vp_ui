@@ -8,7 +8,7 @@ import { usePlayerStore } from '/src/stores/usePlayer.js'
 import { storeToRefs } from 'pinia'
 import { socket } from '/src/boot/socketio.js'
 const { pStatus } = storeToRefs(useStatusStore())
-const { fnPlay, fnStop, fnPause, fnSetFullscreen } = usePlayerStore()
+const { fnPlay, fnStop, fnPause, fnSetFullscreen, fnPrev, fnNext } = usePlayerStore()
 
 const current = computed(() => {
   return (
@@ -40,11 +40,10 @@ const rotateRepeat = () => {
   <div class="row no-wrap justify-center items-center q-mb-sm q-gutter-x-md">
     <!-- rewind -->
     <div v-if="pStatus.playlistMode">
-      <q-btn flat round icon="fast_rewind" color="primary">
+      <q-btn flat round icon="fast_rewind" color="primary" @click="fnPrev">
         <DelayedTooltip msg="Rewind" />
       </q-btn>
     </div>
-    qu
     <!-- play button -->
     <div>
       <q-btn
@@ -67,10 +66,10 @@ const rotateRepeat = () => {
         <DelayedTooltip msg="Stop" />
       </q-btn>
     </div>
-    <!-- forward button -->
+    <!-- Next button -->
     <div v-if="pStatus.playlistMode">
-      <q-btn flat round icon="fast_forward" color="primary">
-        <DelayedTooltip msg="Forward" />
+      <q-btn flat round icon="fast_forward" color="primary" @click="fnNext">
+        <DelayedTooltip msg="Next" />
       </q-btn>
     </div>
     <!-- repeat -->
@@ -120,24 +119,13 @@ const rotateRepeat = () => {
     <!-- fullscreen button -->
     <div>
       <q-btn
-        v-if="pStatus.player && pStatus.player.fullscreen"
         flat
         round
-        icon="fullscreen_exit"
+        :icon="pStatus && pStatus.fullscreen ? 'fullscreen_exit' : 'fullscreen'"
         color="primary"
-        @click="fnSetFullscreen(!pStatus.player.fullscreen)"
+        @click="fnSetFullscreen(!pStatus.fullscreen)"
       >
-        <DelayedTooltip msg="Exit Fullscreen" />
-      </q-btn>
-      <q-btn
-        v-else
-        flat
-        round
-        icon="fullscreen"
-        color="primary"
-        @click="fnSetFullscreen(!pStatus.player.fullscreen)"
-      >
-        <DelayedTooltip msg="Fullscreen" />
+        <DelayedTooltip :msg="pStatus && pStatus.fullscreen ? 'Exit Fullscreen' : 'Fullscreen'" />
       </q-btn>
     </div>
   </div>

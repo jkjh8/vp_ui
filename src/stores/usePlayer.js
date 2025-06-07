@@ -52,6 +52,24 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  const fnPrev = async () => {
+    try {
+      const r = await apiCallWithLoading(`/player/prev`, 'GET', null)
+      console.log(r)
+    } catch (error) {
+      console.error('Error playing previous media:', error)
+    }
+  }
+
+  const fnNext = async () => {
+    try {
+      const r = await apiCallWithLoading(`/player/next`, 'GET', null)
+      console.log(r)
+    } catch (error) {
+      console.error('Error playing next media:', error)
+    }
+  }
+
   const fnUpdateTime = async (time) => {
     try {
       socket.emit('event', { type: 'time', value: time, idx: pStatus.value.activePlayerId })
@@ -105,6 +123,8 @@ export const usePlayerStore = defineStore('player', () => {
     fnPlay,
     fnStop,
     fnPause,
+    fnPrev,
+    fnNext,
     fnUpdateTime,
     fnSetFullscreen,
     fnSetLogo,
