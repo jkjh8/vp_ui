@@ -6,9 +6,8 @@ import DelayedTooltip from '/src/components/delayedTooltip.vue'
 import { useStatusStore } from '/src/stores/useStatus.js'
 import { usePlayerStore } from '/src/stores/usePlayer.js'
 import { storeToRefs } from 'pinia'
-import { socket } from '/src/boot/socketio.js'
 const { pStatus } = storeToRefs(useStatusStore())
-const { fnPlay, fnStop, fnPause, fnSetFullscreen, fnPrev, fnNext } = usePlayerStore()
+const { fnPlay, fnStop, fnPause, fnSetFullscreen, fnPrev, fnNext, setRepeat } = usePlayerStore()
 
 const current = computed(() => {
   return (
@@ -22,17 +21,8 @@ const current = computed(() => {
 })
 
 // methods
-const rotateRepeat = () => {
-  if (pStatus.value.repeat === 'none') {
-    pStatus.value.repeat = 'all'
-  } else if (pStatus.value.repeat === 'all') {
-    pStatus.value.repeat = pStatus.value.playlistMode ? 'repeat_one' : 'none'
-  } else if (pStatus.value.playlistMode && pStatus.value.repeat === 'repeat_one') {
-    pStatus.value.repeat = 'single'
-  } else if (pStatus.value.repeat === 'single') {
-    pStatus.value.repeat = 'none'
-  }
-  socket.emit('event', { type: 'repeat', value: pStatus.value.repeat })
+const rotateRepeat = async () => {
+  await setRepeat()
 }
 </script>
 

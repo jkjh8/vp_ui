@@ -118,6 +118,16 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  const setRepeat = async (repeat) => {
+    try {
+      const r = await apiCallWithLoading(`/player/repeat/${repeat}`, 'GET', null)
+      pStatus.value.repeat = r.data.mode
+      console.log('Repeat mode set to:', pStatus.value.repeat)
+    } catch (error) {
+      console.error('Error setting repeat mode:', error)
+    }
+  }
+
   return {
     fnPlayById,
     fnPlay,
@@ -131,5 +141,6 @@ export const usePlayerStore = defineStore('player', () => {
     fnShowLogo,
     fnSetLogoSize,
     fnSetBackground,
+    setRepeat,
   }
 })
