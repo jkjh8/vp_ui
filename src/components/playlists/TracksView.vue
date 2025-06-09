@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
 import { useApiStore } from 'src/stores/useApi'
+import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import Draggable from 'vuedraggable'
 
 const { playlists, currentPlaylist } = storeToRefs(usePlaylistStore())
 const { getAddr } = useApiStore()
+const { pStatus } = storeToRefs(useStatusStore())
 
 const currentTracks = computed({
   get() {
@@ -36,6 +38,18 @@ const updateTrackOrder = async (newOrder) => {
     console.error('Failed to update track order:', error)
   }
 }
+
+// 현재 트랙이 재생 중인지 확인
+const isTrackPlaying = (trackIndex) => {
+  // playlist에서 uuid로 playlistId 찾기
+  console.log('Checking if track is playing:', trackIndex, pStatus.value.playlistTrackIndex)
+  const playlist = playlists.value.find((p) => p._id === currentPlaylist.value)
+  console.log('Current Playlist:', playlist)
+  return (
+    playlist.playlistId === pStatus.value.currentPlaylistId &&
+    pStatus.value.playlistTrackIndex === trackIndex
+  )
+}
 </script>
 
 <template>
@@ -58,6 +72,7 @@ const updateTrackOrder = async (newOrder) => {
         <q-item
           :key="index"
           clickable
+          :class="isTrackPlaying(index) ? 'bg-grey-5' : 'bg-grey-2'"
           style="border-radius: 8px; margin-bottom: 4px; background-color: #f9f9f9"
         >
           <q-item-section avatar>
@@ -96,6 +111,9 @@ const updateTrackOrder = async (newOrder) => {
 </template>
 
 <style scoped>
+.track-playing {
+  background-color: #ff0000; /* 회색 배경 */
+}
 .track-item {
   transition: background-color 0.3s;
 }

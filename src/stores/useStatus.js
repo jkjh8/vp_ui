@@ -8,11 +8,6 @@ export const useStatusStore = defineStore('status', () => {
   const pStatus = ref({
     playlistMode: false,
     nics: [],
-    current: {
-      id: '',
-      name: '',
-      type: '',
-    },
     playlist: [],
     device: {
       audiocurrentdevice: '',
@@ -32,16 +27,18 @@ export const useStatusStore = defineStore('status', () => {
       {
         event: '',
         buffering: 0,
-        media_path: '',
-        filename: '',
         volume: 100,
         speed: 1.0,
         duration: 0,
         time: 0,
         position: 0.0,
         playing: false,
-        is_image: false,
-        image_path: null,
+        file: {
+          filename: '',
+          size: 0,
+          path: '',
+          is_image: false,
+        },
       },
     ],
     background: '',

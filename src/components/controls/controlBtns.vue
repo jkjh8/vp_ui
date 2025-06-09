@@ -16,6 +16,7 @@ const current = computed(() => {
       duration: 0,
       file: {},
       is_playing: 0,
+      is_image: false,
     }
   )
 })
@@ -46,7 +47,15 @@ const rotateRepeat = async () => {
       >
         <DelayedTooltip msg="Play" />
       </q-btn>
-      <q-btn v-else flat round icon="pause" color="primary" @click="fnPause">
+      <q-btn
+        v-else
+        flat
+        round
+        icon="pause"
+        color="primary"
+        @click="fnPause"
+        :disabled="current.file.is_image"
+      >
         <DelayedTooltip msg="Pause" />
       </q-btn>
     </div>
