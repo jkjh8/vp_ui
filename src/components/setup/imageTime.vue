@@ -20,17 +20,17 @@ const updateValue = async (value) => {
         flat
         round
         icon="chevron_left"
-        @click="updateValue(Math.max(0, (Number(pStatus.image_time) || 0) - 1))"
+        @click="updateValue(Math.max(0, (Number(pStatus.imageTime) || 0) - 1))"
         size="sm"
       />
       <span class="q-mx-md text-bold" style="min-width: 40px; text-align: center">
-        {{ pStatus.image_time }}<span class="text-caption q-ml-xs">sec</span>
+        {{ pStatus.imageTime }}<span class="text-caption q-ml-xs">sec</span>
       </span>
       <q-btn
         flat
         round
         icon="chevron_right"
-        @click="updateValue(Math.min(60, (Number(pStatus.image_time) || 0) + 1))"
+        @click="updateValue(Math.min(60, (Number(pStatus.imageTime) || 0) + 1))"
         size="sm"
       />
     </div>

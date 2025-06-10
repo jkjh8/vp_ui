@@ -118,9 +118,9 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
-  const setRepeat = async (repeat) => {
+  const setRepeat = async () => {
     try {
-      const r = await apiCallWithLoading(`/player/repeat/${repeat}`, 'GET', null)
+      const r = await apiCallWithLoading(`/player/repeat`, 'GET', null)
       pStatus.value.repeat = r.data.mode
       console.log('Repeat mode set to:', pStatus.value.repeat)
     } catch (error) {

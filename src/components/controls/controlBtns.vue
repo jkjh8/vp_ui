@@ -31,7 +31,7 @@ const rotateRepeat = async () => {
   <div class="row no-wrap justify-center items-center q-mb-sm q-gutter-x-md">
     <!-- rewind -->
     <div v-if="pStatus.playlistMode">
-      <q-btn flat round icon="fast_rewind" color="primary" @click="fnPrev">
+      <q-btn flat round icon="skip_previous" color="primary" @click="fnPrev">
         <DelayedTooltip msg="Rewind" />
       </q-btn>
     </div>
@@ -67,7 +67,7 @@ const rotateRepeat = async () => {
     </div>
     <!-- Next button -->
     <div v-if="pStatus.playlistMode">
-      <q-btn flat round icon="fast_forward" color="primary" @click="fnNext">
+      <q-btn flat round icon="skip_next" color="primary" @click="fnNext">
         <DelayedTooltip msg="Next" />
       </q-btn>
     </div>

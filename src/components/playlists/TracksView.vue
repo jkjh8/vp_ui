@@ -1,11 +1,14 @@
 <script setup>
 import { computed } from 'vue'
+import { useQuasar } from 'quasar'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
 import { useApiStore } from 'src/stores/useApi'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import Draggable from 'vuedraggable'
+import editImageShowTime from '../dialogs/editImageShowTime.vue'
 
+const $q = useQuasar()
 const { playlists, currentPlaylist } = storeToRefs(usePlaylistStore())
 const { getAddr } = useApiStore()
 const { pStatus } = storeToRefs(useStatusStore())
@@ -50,6 +53,22 @@ const isTrackPlaying = (trackIndex) => {
     pStatus.value.playlistTrackIndex === trackIndex
   )
 }
+
+const playDirectly = (track) => {
+  usePlaylistStore().playlistPlay(usePlaylistStore().getCurrentPlaylistId(), track)
+}
+
+const editTime = (track) => {
+  $q.dialog({
+    component: editImageShowTime,
+    componentProps: {
+      time: track.time || 0,
+    },
+    persistent: true,
+  }).onOk((time) => {
+    console.log(time)
+  })
+}
 </script>
 
 <template>
@@ -87,12 +106,21 @@ const isTrackPlaying = (trackIndex) => {
           <q-item-section side>
             <div class="row no-wrap items-center">
               <q-btn
+                v-if="element.is_image"
+                flat
+                round
+                color="primary"
+                icon="edit"
+                size="sm"
+                @click="editTime(element)"
+              ></q-btn>
+              <q-btn
                 flat
                 round
                 color="primary"
                 icon="play_arrow"
                 size="sm"
-                @click.stop="usePlaylistStore().playTrackFromPlaylist(currentPlaylist, element)"
+                @click.stop="playDirectly(index)"
               />
               <q-btn
                 flat

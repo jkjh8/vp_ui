@@ -37,6 +37,9 @@ const currentPlayer = computed(() => {
             </div>
             <div>
               <div class="text-subtitle2">Current File is...</div>
+              <div v-if="pStatus.playlistMode" class="text-bold text-primary">
+                - Playlist Mode -
+              </div>
               <div v-if="currentPlayer.file" class="">
                 <div class="q-gutter-x-xs">
                   <span> File: </span>

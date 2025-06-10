@@ -108,6 +108,14 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     currentPlaylist.value = index
   }
 
+  const getCurrentPlaylistId = () => {
+    if (currentPlaylist.value) {
+      const playlist = playlists.value.find((p) => p._id === currentPlaylist.value)
+      return playlist ? playlist.playlistId : null
+    }
+    return null
+  }
+
   const playCurrentPlaylist = () => {
     if (currentPlaylist.value) {
       pStatus.value.playlistMode = true
@@ -143,6 +151,7 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     removeTrackFromPlaylist,
     playCurrentPlaylist,
     playlistPlay,
+    getCurrentPlaylistId,
   }
 })
 

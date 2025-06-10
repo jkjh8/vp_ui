@@ -42,7 +42,7 @@ export const useStatusStore = defineStore('status', () => {
       },
     ],
     background: '',
-    image_time: 0,
+    imageTime: 0,
   })
 
   const updateStatus = async (key, newValue) => {
@@ -111,7 +111,7 @@ export const useStatusStore = defineStore('status', () => {
       `Updating image time to ${value}...`,
     )
     if (response.data.pStatus) {
-      pStatus.value.image_time = response.data.pStatus.image_time
+      pStatus.value.imageTime = response.data.pStatus.imageTime
     }
   }
 

@@ -24,7 +24,7 @@ onMounted(async () => {
       <q-card-section class="row justify-between items-center">
         <div>
           <q-icon name="public" size="sm" color="primary"></q-icon>
-          <span class="q-ml-sm text-bold">Set Logo Size</span>
+          <span class="q-ml-sm text-bold">Rendering Time</span>
         </div>
       </q-card-section>
 
@@ -34,7 +34,7 @@ onMounted(async () => {
           filled
           dense
           type="number"
-          label="Size"
+          label="Time in seconds"
           min="0"
           :rules="[(val) => val >= 0 || 'Size must be a positive number']"
         />
