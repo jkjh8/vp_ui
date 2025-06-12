@@ -14,7 +14,7 @@ const { pStatus } = useStatusStore()
     <div v-if="file" class="row items-center q-gutter-x-sm">
       <q-icon :name="file.is_image ? 'image' : 'video_library'" size="sm" color="primary"></q-icon>
       <span class="text-bold">
-        {{ file.fieldname ? file.fieldname : 'No media selected' }}
+        {{ file.filename ? file.filename : 'No media selected' }}
       </span>
     </div>
     <div v-else class="text-grey">No media selected</div>

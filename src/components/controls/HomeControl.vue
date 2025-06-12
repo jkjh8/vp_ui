@@ -44,7 +44,7 @@ const currentPlayer = computed(() => {
                 <div class="q-gutter-x-xs">
                   <span> File: </span>
                   <span class="text-subtitle2 text-primary">
-                    {{ currentPlayer.file.fieldname }}
+                    {{ currentPlayer.file.filename }}
                   </span>
                 </div>
                 <div class="q-gutter-x-xs">

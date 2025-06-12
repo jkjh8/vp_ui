@@ -9,7 +9,6 @@ export const useFilesStore = defineStore('files', () => {
   const getFileList = async () => {
     const response = await apiCallWithLoading('/files', 'GET', null, 'Fetching file list...')
     files.value = response.data
-    console.log('File list fetched successfully:', files.value)
   }
 
   const deleteFile = async (file) => {
@@ -20,7 +19,6 @@ export const useFilesStore = defineStore('files', () => {
       `Deleting file ${file.uuid}...`,
     )
     if (response.status === 200) {
-      console.log('File deleted successfully:', file)
       files.value = files.value.filter((f) => f.uuid !== file.uuid)
     } else {
       console.error('Failed to delete file:', response.statusText)

@@ -15,7 +15,6 @@ export const usePlaylistStore = defineStore('Playlist', () => {
   const getPlaylists = async () => {
     const response = await apiCallWithLoading('/playlist', 'GET', null, 'Fetching playlist...')
     playlists.value = response.data
-    console.log('Playlist fetched successfully:', playlists.value)
   }
 
   const addPlaylist = async (playlistData) => {
@@ -55,7 +54,10 @@ export const usePlaylistStore = defineStore('Playlist', () => {
       if (!playlist) {
         throw new Error('Playlist not found')
       }
-      const tracks = [...(playlist.tracks || []), ...tracksData].map((track) => track.uuid)
+      const tracks = [...(playlist.tracks || []), ...tracksData].map((track) => ({
+        uuid: track.uuid,
+        time: 0,
+      }))
       const response = await apiCallWithLoading(
         `/playlist`,
         'PUT',
@@ -120,21 +122,32 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     if (currentPlaylist.value) {
       pStatus.value.playlistMode = true
       isPlaying.value = true
-      console.log('Playing current playlist:', currentPlaylist.value)
     } else {
       console.error('No current playlist to play')
     }
   }
 
+  const updateImageTime = async (playlistId, idx, time) => {
+    try {
+      await apiCallWithLoading(
+        'playlist/image_time',
+        'PUT',
+        { playlistId, idx, time },
+        'Updating image time...',
+      )
+      await getPlaylists()
+    } catch (error) {
+      console.error('Error updating image time:', error)
+    }
+  }
+
   const playlistPlay = async (index, track = 0) => {
-    console.log('playlistPlay called with index:', index, 'and track:', track)
-    const response = await apiCallWithLoading(
+    await apiCallWithLoading(
       `/playlist/play?playlistId=${index}&trackIndex=${track}`,
       'GET',
       null,
       'Playing playlist...',
     )
-    console.log('Playlist play response:', response)
   }
 
   return {
@@ -152,6 +165,7 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     playCurrentPlaylist,
     playlistPlay,
     getCurrentPlaylistId,
+    updateImageTime,
   }
 })
 

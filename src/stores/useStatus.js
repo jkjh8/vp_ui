@@ -75,6 +75,16 @@ export const useStatusStore = defineStore('status', () => {
     return response
   }
 
+  const getAudioDevices = async () => {
+    const response = await apiCallWithLoading(
+      '/player/audio_devices',
+      'GET',
+      null,
+      'Getting current audio devices...',
+    )
+    return response
+  }
+
   const isBright = (color) => {
     let c = color.trim().toLowerCase()
     if (c === 'white' || c === '#fff' || c === '#ffffff' || c === 'rgb(255,255,255)') return true
@@ -152,12 +162,12 @@ export const useStatusStore = defineStore('status', () => {
       `Updating logo visibility to ${isVisible ? 'visible' : 'hidden'}...`,
     )
     pStatus.value.logo = response.data.pStatus.logo
-    console.log(`Logo visibility updated to ${isVisible ? 'visible' : 'hidden'}`)
   }
 
   return {
     pStatus,
     updateStatus,
+    getAudioDevices,
     setAudioDevice,
     isBright,
     updateImageTime,

@@ -36,7 +36,6 @@ const updateTrackOrder = async (newOrder) => {
     await playlistStore.updatePlaylist(currentPlaylist.value, {
       tracks: newOrder.map((track) => track.uuid),
     })
-    console.log('Track order updated successfully')
   } catch (error) {
     console.error('Failed to update track order:', error)
   }
@@ -45,9 +44,7 @@ const updateTrackOrder = async (newOrder) => {
 // 현재 트랙이 재생 중인지 확인
 const isTrackPlaying = (trackIndex) => {
   // playlist에서 uuid로 playlistId 찾기
-  console.log('Checking if track is playing:', trackIndex, pStatus.value.playlistTrackIndex)
   const playlist = playlists.value.find((p) => p._id === currentPlaylist.value)
-  console.log('Current Playlist:', playlist)
   return (
     playlist.playlistId === pStatus.value.currentPlaylistId &&
     pStatus.value.playlistTrackIndex === trackIndex
@@ -58,15 +55,19 @@ const playDirectly = (track) => {
   usePlaylistStore().playlistPlay(usePlaylistStore().getCurrentPlaylistId(), track)
 }
 
-const editTime = (track) => {
+const editTime = (track, index) => {
   $q.dialog({
     component: editImageShowTime,
     componentProps: {
       time: track.time || 0,
     },
     persistent: true,
-  }).onOk((time) => {
-    console.log(time)
+  }).onOk(async (time) => {
+    try {
+      await usePlaylistStore().updateImageTime(currentPlaylist.value, index, time)
+    } catch (error) {
+      console.error('Error updating track time:', error)
+    }
   })
 }
 </script>
@@ -91,17 +92,30 @@ const editTime = (track) => {
         <q-item
           :key="index"
           clickable
-          :class="isTrackPlaying(index) ? 'bg-grey-5' : 'bg-grey-2'"
+          :class="isTrackPlaying(index) ? 'bg-yellow-2' : 'bg-grey-2'"
           style="border-radius: 8px; margin-bottom: 4px; background-color: #f9f9f9"
         >
           <q-item-section avatar>
             <q-img
+              v-if="element.mimetype.startsWith('image/') || element.mimetype.startsWith('video/')"
               :src="`${getAddr()}/api/files/thumbnail/${element.uuid}`"
+              style="width: 50px; height: 30px"
+            />
+            <q-icon
+              v-else
+              name="play_arrow"
+              size="2rem"
+              color="primary"
               style="width: 50px; height: 30px"
             />
           </q-item-section>
           <q-item-section>
             <q-item-label>{{ element.filename }}</q-item-label>
+            <q-item-section caption v-if="element.time"
+              ><div class="text-caption text-grey-8">
+                <span>Time:</span> <span>{{ element.time }}</span>
+              </div>
+            </q-item-section>
           </q-item-section>
           <q-item-section side>
             <div class="row no-wrap items-center">
@@ -112,7 +126,7 @@ const editTime = (track) => {
                 color="primary"
                 icon="edit"
                 size="sm"
-                @click="editTime(element)"
+                @click="editTime(element, index)"
               ></q-btn>
               <q-btn
                 flat

@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
@@ -19,6 +20,12 @@ const openDialog = () => {
     await useStatusStore().setAudioDevice(data)
   })
 }
+
+onMounted(() => {
+  // Any initialization logic can go here
+  // For example, you might want to fetch the audio devices if not already done
+  useStatusStore().getAudioDevices()
+})
 </script>
 
 <template>

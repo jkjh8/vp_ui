@@ -25,7 +25,6 @@ onMounted(async () => {
 })
 
 const fnShowMetaData = (file) => {
-  console.log(file)
   $q.dialog({
     component: MetaData,
     componentProps: {

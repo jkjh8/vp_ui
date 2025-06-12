@@ -45,7 +45,6 @@ onMounted(() => {
     playlist.value.playlistId = generatePlaylistId()
     playlist.value.name = `playlist ${playlists.value.length + 1}`
   }
-  console.log('초기화된 playlist:', playlist.value, '기존 데이터:', props.initialData)
 })
 
 // 이름 유효성 검사

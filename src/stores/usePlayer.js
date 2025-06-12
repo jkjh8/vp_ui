@@ -18,12 +18,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnPlay = async () => {
     try {
-      const r = await apiCallWithLoading(
-        `/player/play/${pStatus.value.activePlayerId}`,
-        'GET',
-        null,
-      )
-      console.log(r)
+      await apiCallWithLoading(`/player/play/${pStatus.value.activePlayerId}`, 'GET', null)
     } catch (error) {
       pStatus.current = {}
       console.error('Error playing media:', error)
@@ -32,8 +27,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnStop = async () => {
     try {
-      const r = await apiCallWithLoading('/player/stop', 'GET', null)
-      console.log(r)
+      await apiCallWithLoading('/player/stop', 'GET', null)
     } catch (error) {
       console.error('Error stopping media:', error)
     }
@@ -41,12 +35,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnPause = async () => {
     try {
-      const r = await apiCallWithLoading(
-        `/player/pause/${pStatus.value.activePlayerId}`,
-        'GET',
-        null,
-      )
-      console.log(r)
+      await apiCallWithLoading(`/player/pause/${pStatus.value.activePlayerId}`, 'GET', null)
     } catch (error) {
       console.error('Error pausing media:', error)
     }
@@ -54,8 +43,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnPrev = async () => {
     try {
-      const r = await apiCallWithLoading(`/player/prev`, 'GET', null)
-      console.log(r)
+      await apiCallWithLoading(`/player/prev`, 'GET', null)
     } catch (error) {
       console.error('Error playing previous media:', error)
     }
@@ -63,8 +51,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   const fnNext = async () => {
     try {
-      const r = await apiCallWithLoading(`/player/next`, 'GET', null)
-      console.log(r)
+      await apiCallWithLoading(`/player/next`, 'GET', null)
     } catch (error) {
       console.error('Error playing next media:', error)
     }

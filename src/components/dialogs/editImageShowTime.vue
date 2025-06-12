@@ -5,16 +5,16 @@ import DelayedTooltip from '../delayedTooltip.vue'
 
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-const editSize = ref(0)
+const editTime = ref(0)
 
 const props = defineProps({
-  size: {
+  time: {
     type: Number,
   },
 })
 
 onMounted(async () => {
-  editSize.value = props.size || 0
+  editTime.value = props.time || 0
 })
 </script>
 
@@ -30,22 +30,22 @@ onMounted(async () => {
 
       <q-card-section>
         <q-input
-          v-model.number="editSize"
+          v-model.number="editTime"
           filled
           dense
           type="number"
           label="Time in seconds"
           min="0"
-          :rules="[(val) => val >= 0 || 'Size must be a positive number']"
+          :rules="[(val) => val >= 0 || 'Time must be a positive number']"
         />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn flat round icon="cancel" color="negative" @click="onDialogCancel">
-          <DelayedTooltip msg="Cancel the selection" />
+          <DelayedTooltip msg="Cancel" />
         </q-btn>
-        <q-btn flat round color="primary" icon="check_circle" @click="onDialogOK(editSize)">
-          <DelayedTooltip msg="Select the first logo file" />
+        <q-btn flat round color="primary" icon="check_circle" @click="onDialogOK(editTime)">
+          <DelayedTooltip msg="Confirm" />
         </q-btn>
       </q-card-actions>
     </q-card>
