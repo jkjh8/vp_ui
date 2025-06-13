@@ -62,6 +62,6 @@ onMounted(() => {
   width: 50%;
   max-width: 500px;
   min-width: 350px;
-  background-color: rgba(255, 255, 255, 0.7); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
+  background-color: rgba(255, 255, 255, 0.9); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
 }
 </style>

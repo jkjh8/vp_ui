@@ -4,6 +4,7 @@ import { useQuasar } from 'quasar'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
 import { storeToRefs } from 'pinia'
 import addPlaylist from 'src/components/dialogs/addPlaylist.vue'
+import confirmDialog from 'src/components/dialogs/confirmDialog.vue'
 
 const playlistStore = usePlaylistStore()
 const { playlists, currentPlaylist } = storeToRefs(playlistStore)
@@ -27,6 +28,18 @@ const editPlaylist = (playlist) => {
       type: 'positive',
       message: 'Playlist updated successfully.',
     })
+  })
+}
+
+const onDeletePlaylist = (item) => {
+  $q.dialog({
+    component: confirmDialog,
+    componentProps: {
+      title: 'Delete Playlist',
+      message: `Are you sure you want to delete the playlist "${item.name}"?`,
+    },
+  }).onOk(() => {
+    playlistStore.deletePlaylist(item._id)
   })
 }
 
@@ -80,7 +93,7 @@ onMounted(() => {
               size="sm"
               icon="delete"
               color="negative"
-              @click.stop.prevent="playlistStore.deletePlaylist(item._id)"
+              @click.stop.prevent="onDeletePlaylist(item)"
             ></q-btn>
             <q-separator vertical class="q-mx-sm" />
             <q-btn

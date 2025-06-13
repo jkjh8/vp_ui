@@ -3,7 +3,7 @@ import { useQuasar } from 'quasar'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import selectLogo from '../dialogs/selectLogo.vue'
-import logoSize from '../dialogs/logoSize.vue'
+import logoSize from '../dialogs/editNumber.vue'
 import DelayedTooltip from '../delayedTooltip.vue'
 const { updateLogo, updateLogoSize, updateLogoVisibility } = useStatusStore()
 
@@ -26,7 +26,13 @@ const openDialogSize = () => {
   $q.dialog({
     component: logoSize,
     componentProps: {
-      size: pStatus.value.logo.size,
+      value: pStatus.value.logo.size,
+      title: 'Set Logo Size',
+      label: 'Logo Size',
+      icon: 'square_foot',
+      unit: 'px',
+      min: 0,
+      max: 300,
     },
     persistent: true,
   }).onOk((data) => {

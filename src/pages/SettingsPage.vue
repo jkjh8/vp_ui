@@ -1,4 +1,5 @@
 <script setup>
+import serverPort from 'src/components/setup/SeverPort.vue'
 import imageTime from 'src/components/setup/imageTime.vue'
 import BackgroundColor from 'src/components/setup/backgroundColor.vue'
 import LogoSetup from 'src/components/setup/logoSetup.vue'
@@ -10,6 +11,7 @@ import mediaFileReset from 'src/components/setup/mediaFileReset.vue'
   <div class="q-py-sm q-px-lg">
     <q-card flat>
       <q-card-section>
+        <serverPort />
         <mediaFileReset />
         <imageTime />
         <BackgroundColor />

@@ -1,6 +1,6 @@
 <script setup>
 import { useDialogPluginComponent } from 'quasar'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useFilesStore } from 'src/stores/useFiles'
 import { useApiStore } from 'src/stores/useApi'
 import { storeToRefs } from 'pinia'
@@ -21,6 +21,34 @@ const { files } = storeToRefs(useFilesStore())
 onMounted(async () => {
   await useFilesStore().getFileList()
 })
+
+const allSelected = computed({
+  get() {
+    return files.value && files.value.length > 0 && tracks.value.length === files.value.length
+  },
+  set(val) {
+    toggleAll(val)
+  },
+})
+
+function toggleAll(val) {
+  if (val) {
+    tracks.value = files.value ? [...files.value] : []
+  } else {
+    tracks.value = []
+  }
+}
+
+function toggleTrack(file, checked) {
+  const idx = tracks.value.indexOf(file)
+  if (typeof checked === 'boolean') {
+    if (checked && idx === -1) tracks.value.push(file)
+    else if (!checked && idx !== -1) tracks.value.splice(idx, 1)
+  } else {
+    if (idx === -1) tracks.value.push(file)
+    else tracks.value.splice(idx, 1)
+  }
+}
 </script>
 
 <template>
@@ -34,11 +62,20 @@ onMounted(async () => {
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <div class="row items-center q-gutter-x-sm">
-          <span class="text-caption"> Current Playlist: </span>
-          <span class="text-bold">
-            {{ props.playlist?.name || 'Unknown Playlist' }}
-          </span>
+        <div class="row justify-between items-center">
+          <div class="row items-center q-gutter-x-sm">
+            <span class="text-caption"> Current Playlist: </span>
+            <span class="text-bold">
+              {{ props.playlist?.name || 'Unknown Playlist' }}
+            </span>
+          </div>
+          <!-- 전체 선택 체크박스 -->
+          <q-checkbox
+            class="q-mr-lg"
+            v-model="allSelected"
+            @update:model-value="toggleAll"
+            :disable="!files || files.length === 0"
+          />
         </div>
         <q-list bordered separator class="q-pa-none">
           <q-item
@@ -47,13 +84,7 @@ onMounted(async () => {
             class="q-pa-sm"
             clickable
             :active="tracks.includes(file)"
-            @click="
-              () => {
-                const i = tracks.indexOf(file)
-                if (i === -1) tracks.push(file)
-                else tracks.splice(i, 1)
-              }
-            "
+            @click="() => toggleTrack(file)"
           >
             <q-item-section avatar>
               <q-img
@@ -68,12 +99,7 @@ onMounted(async () => {
             <q-item-section side>
               <q-checkbox
                 :model-value="tracks.includes(file)"
-                @update:model-value="
-                  (checked) => {
-                    if (checked) tracks.push(file)
-                    else tracks = tracks.filter((f) => f !== file)
-                  }
-                "
+                @update:model-value="(checked) => toggleTrack(file, checked)"
                 @click.stop
               />
             </q-item-section>
@@ -92,7 +118,7 @@ onMounted(async () => {
 <style scoped>
 .q-card {
   border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.8); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
+  background-color: rgba(255, 255, 255, 0.9); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
   min-width: 350px;
   max-width: 600px; /* 리스트의 최대 너비 설정 */
   width: 50%;

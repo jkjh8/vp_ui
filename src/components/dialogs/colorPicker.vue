@@ -38,7 +38,7 @@ const bg = ref(props.background)
 <style scoped>
 .q-card {
   border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.8); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
+  background-color: rgba(255, 255, 255, 0.9); /* 배경색에 투명도 추가 (0.9 = 90% 불투명) */
 }
 .my-picker {
   width: 300px;

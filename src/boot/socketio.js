@@ -4,6 +4,23 @@ import { storeToRefs } from 'pinia'
 const { pStatus } = storeToRefs(useStatusStore())
 let socket
 
+// 재귀적으로 하위 오브젝트의 값까지 있는 값만 변경
+function deepAssign(target, source) {
+  for (const key in source) {
+    if (
+      source[key] !== null &&
+      typeof source[key] === 'object' &&
+      !Array.isArray(source[key]) &&
+      target[key] !== undefined &&
+      typeof target[key] === 'object'
+    ) {
+      deepAssign(target[key], source[key])
+    } else if (source[key] !== undefined) {
+      target[key] = source[key]
+    }
+  }
+}
+
 export default async ({ app }) => {
   // 서버 주소는 환경에 맞게 설정
   const serverUrl =
@@ -21,7 +38,7 @@ export default async ({ app }) => {
       console.log('Socket disconnected')
     })
     socket.on('pStatus', (status) => {
-      Object.assign(pStatus.value, status)
+      deepAssign(pStatus.value, status)
     })
     socket.on('error', (error) => {
       console.error('Socket error:', error)

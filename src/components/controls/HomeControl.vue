@@ -25,6 +25,7 @@ const currentPlayer = computed(() => {
           <div class="row items-center q-gutter-x-md">
             <div>
               <q-img
+                v-if="currentPlayer.file?.uuid"
                 :src="`${getAddr()}/api/files/thumbnail/${currentPlayer.file?.uuid}`"
                 style="
                   width: 320px;
@@ -34,6 +35,7 @@ const currentPlayer = computed(() => {
                 "
                 alt="Mountains"
               />
+              <q-img v-else src="logo2.png" style="width: 100px" alt="Mountains" />
             </div>
             <div>
               <div class="text-subtitle2">Current File is...</div>

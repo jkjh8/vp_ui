@@ -128,6 +128,6 @@ const existsPlaylistId = (id) => {
 <style scoped>
 .q-card {
   border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.9);
 }
 </style>

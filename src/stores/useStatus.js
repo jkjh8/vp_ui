@@ -10,8 +10,8 @@ export const useStatusStore = defineStore('status', () => {
     nics: [],
     playlist: [],
     device: {
-      audiocurrentdevice: '',
-      audiodevicelist: [],
+      audiodevice: '',
+      audiodevices: [],
     },
     fullscreen: false,
     logo: {

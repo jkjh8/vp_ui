@@ -10,7 +10,7 @@ const updateValue = async (value) => {
 </script>
 
 <template>
-  <div class="row justify-between items-center">
+  <div class="row justify-between items-center q-my-sm">
     <div>
       <q-icon name="timer " size="sm" color="primary"></q-icon>
       <span class="q-ml-sm text-bold">Image Showing Time</span>

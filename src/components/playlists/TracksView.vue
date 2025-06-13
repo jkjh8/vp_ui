@@ -34,7 +34,7 @@ const updateTrackOrder = async (newOrder) => {
   const playlistStore = usePlaylistStore()
   try {
     await playlistStore.updatePlaylist(currentPlaylist.value, {
-      tracks: newOrder.map((track) => track.uuid),
+      tracks: newOrder.map((track) => ({ uuid: track.uuid, time: track.time || 0 })),
     })
   } catch (error) {
     console.error('Failed to update track order:', error)
