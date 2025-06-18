@@ -75,7 +75,7 @@ const fnDeleteFile = (file) => {
   <q-table
     :rows="files"
     :columns="[
-      { name: 'name', label: 'Name', field: 'fieldname', align: 'left', sortable: true },
+      { name: 'name', label: 'Name', field: 'filename', align: 'left', sortable: true },
       { name: 'id', label: 'ID', field: 'number', align: 'center', sortable: true },
       { name: 'type', label: 'Type', field: 'mimetype', align: 'center', sortable: true },
       { name: 'size', label: 'Size', field: 'size', align: 'center', sortable: true },
@@ -118,14 +118,14 @@ const fnDeleteFile = (file) => {
                       background: #fff;
                       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                     "
-                    :alt="props.row.fieldname"
+                    :alt="props.row.filename"
                   />
                 </q-menu>
               </q-img>
               <q-icon v-else name="play_arrow" size="sm" color="primary" />
             </div>
             <div>
-              {{ props.row.fieldname }}
+              {{ props.row.filename }}
             </div>
           </div>
         </q-td>
