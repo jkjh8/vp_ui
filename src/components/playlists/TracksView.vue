@@ -1,166 +1,624 @@
 <script setup>
-import { computed } from 'vue'
+// 장면(Scene) 기반 트랙 리스트. 트랙 1개 = 장면 = 창별 동영상 묶음(clips[]).
+// 영상 클립을 오디오처럼 세로 리스트로 표시. 영상은 창당 1개(창 수를 넘지 못함), 각 클립은
+// 서로 다른 창에 배정. 창을 줄이면 그 창의 클립은 서버가 정리한다.
+import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
 import { useApiStore } from 'src/stores/useApi'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import Draggable from 'vuedraggable'
-import editImageShowTime from '../dialogs/editImageShowTime.vue'
+import SceneAudioList from './SceneAudioList.vue'
+import DelayChip from './DelayChip.vue'
+import addTracks from '../dialogs/addTracks.vue'
+import { toPersistedTrack, toPersistedClip, toPersistedAudio } from 'src/composables/useTracks'
+import { useI18n } from 'vue-i18n'
+import { usePlayback } from 'src/composables/usePlayback'
 
+const { t } = useI18n()
 const $q = useQuasar()
-const { playlists, currentPlaylist } = storeToRefs(usePlaylistStore())
+const playlistStore = usePlaylistStore()
+const { playlists, currentPlaylist } = storeToRefs(playlistStore)
 const { getAddr } = useApiStore()
 const { pStatus } = storeToRefs(useStatusStore())
 
-const currentTracks = computed({
-  get() {
-    const playlist = playlists.value?.find((p) => p._id === currentPlaylist.value)
-    return playlist?.tracks || []
+// 장면 카드 접기/펼치기 (세션 로컬, 인덱스 기준). 플레이리스트 처음 열면 전부 접힘.
+const collapsed = ref(new Set())
+const isCollapsed = (i) => collapsed.value.has(i)
+const toggleCollapse = (i) => {
+  const s = new Set(collapsed.value)
+  s.has(i) ? s.delete(i) : s.add(i)
+  collapsed.value = s
+}
+const currentPlaylistObj = computed(() =>
+  playlists.value?.find((p) => p._id === currentPlaylist.value),
+)
+const scenes = computed({
+  get: () => currentPlaylistObj.value?.tracks || [],
+  set: (v) => {
+    if (currentPlaylistObj.value) currentPlaylistObj.value.tracks = v
   },
-  set(newTracks) {
-    const playlist = playlists.value?.find((p) => p._id === currentPlaylist.value)
-    if (playlist) {
-      playlist.tracks = newTracks
+})
+const hasPlaylist = computed(
+  () => currentPlaylist.value && playlists.value?.some((p) => p._id === currentPlaylist.value),
+)
+
+// 플레이리스트를 처음 열면 전 장면을 접힘으로 초기화 (플레이리스트별 1회, 이후 사용자 토글 유지).
+const initedFor = ref(null)
+watch(
+  [currentPlaylist, scenes],
+  () => {
+    if (initedFor.value !== currentPlaylist.value && scenes.value.length) {
+      collapsed.value = new Set(scenes.value.map((_, i) => i))
+      initedFor.value = currentPlaylist.value
     }
   },
-})
+  { immediate: true },
+)
 
-const hasPlaylist = computed(() => {
-  return currentPlaylist.value && playlists.value?.some((p) => p._id === currentPlaylist.value)
-})
+// 창 오디오 전체 뮤트 (파사드 경유) — 씬형은 창이 장면마다 흩어져 있으므로 헤더에 창별로 모아 둔다
+const { isWindowMuted, toggleWindowMute } = usePlayback()
 
-const updateTrackOrder = async (newOrder) => {
-  const playlistStore = usePlaylistStore()
-  try {
-    await playlistStore.updatePlaylist(currentPlaylist.value, {
-      tracks: newOrder.map((track) => ({ uuid: track.uuid, time: track.time || 0 })),
-    })
-  } catch (error) {
-    console.error('Failed to update track order:', error)
-  }
+// 장면 오디오 영역 펼침 상태 (세션 로컬, 인덱스 기준) — 기본은 접힘
+const audioOpen = ref(new Set())
+const isAudioOpen = (i) => audioOpen.value.has(i)
+const toggleAudio = (i) => {
+  const st = new Set(audioOpen.value)
+  st.has(i) ? st.delete(i) : st.add(i)
+  audioOpen.value = st
 }
 
-// 현재 트랙이 재생 중인지 확인
-const isTrackPlaying = (trackIndex) => {
-  // playlist에서 uuid로 playlistId 찾기
-  const playlist = playlists.value.find((p) => p._id === currentPlaylist.value)
-  return (
-    playlist.playlistId === pStatus.value.currentPlaylistId &&
-    pStatus.value.playlistTrackIndex === trackIndex
+// 설정된 출력 창 목록 (사용자가 추가한 창만)
+const windowList = computed(() =>
+  (pStatus.value.windows || []).map((w) => ({ id: w.id, name: w.name })),
+)
+const mutedCount = computed(() => windowList.value.filter((w) => isWindowMuted(w.id)).length)
+const clipWin = (c) => (Number.isInteger(c.window) ? c.window : 0)
+
+// 오디오 전용 창(화면 송출 없음)은 음원(또는 영상의 오디오)을 클립으로 받는다. 일반 창은 영상/이미지.
+const isAudioWin = (id) => (pStatus.value.windows || []).some((w) => w.id === id && w.audioOnly)
+const clipMimeFilter = (id) => (isAudioWin(id) ? ['audio/', 'video/'] : ['video/', 'image/'])
+
+const isThumbable = (clip) =>
+  clip && (clip.mimetype?.startsWith('image/') || clip.mimetype?.startsWith('video/'))
+
+// 재생 중인 장면 하이라이트 — windowStates(창별 실상태, 소켓으로 통째 교체 = 항상 최신)를 근거로
+// 사용한다. (pStatus.trackId 스칼라는 deepAssign 병합이라 갱신이 어긋나 하이라이트가 누락될 수 있다.
+// windowStates는 WindowTracksView도 쓰는 신뢰 신호.)
+const isSamePlaylist = computed(
+  () =>
+    !!currentPlaylistObj.value &&
+    currentPlaylistObj.value.playlistId === pStatus.value.playlist?.playlistId,
+)
+const playingSceneIndices = computed(() => {
+  const set = new Set()
+  for (const st of Object.values(pStatus.value.windowStates || {})) {
+    const idx = Number.isInteger(st?.sceneIndex)
+      ? st.sceneIndex
+      : Number.isInteger(st?.trackId)
+        ? st.trackId
+        : null
+    if (idx != null) set.add(idx)
+  }
+  return set
+})
+const isScenePlaying = (index) => isSamePlaylist.value && playingSceneIndices.value.has(index)
+
+// 장면의 클립들 (설정된 창 순서로 정렬해 보여줌)
+const sceneClips = (scene) => {
+  const order = new Map(windowList.value.map((w, i) => [w.id, i]))
+  return [...(scene.clips || [])].sort(
+    (a, b) => (order.get(clipWin(a)) ?? 99) - (order.get(clipWin(b)) ?? 99),
   )
 }
-
-const playDirectly = (track) => {
-  usePlaylistStore().playlistPlay(usePlaylistStore().getCurrentPlaylistId(), track)
+// 이 장면에서 다른 클립이 이미 쓰는 창(자기 자신 제외)
+const usedWindows = (scene, exceptWin) =>
+  new Set((scene.clips || []).map(clipWin).filter((w) => w !== exceptWin))
+// 클립 창 선택 옵션 = 미사용 창 + 자기 창
+const windowOptions = (scene, clip) => {
+  const used = usedWindows(scene, clipWin(clip))
+  return windowList.value
+    .filter((w) => !used.has(w.id) || w.id === clipWin(clip))
+    .map((w) => ({ label: w.name, value: w.id }))
+}
+const canAddVideo = (scene) =>
+  windowList.value.length > 0 && (scene.clips || []).length < windowList.value.length
+const firstUnusedWindow = (scene) => {
+  const used = new Set((scene.clips || []).map(clipWin))
+  const w = windowList.value.find((x) => !used.has(x.id))
+  return w ? w.id : null
 }
 
-const editTime = (track, index) => {
+// ── 저장 ──
+const persistScene = (sceneIdx, clips) =>
+  playlistStore.updateTrack(currentPlaylist.value, sceneIdx, { clips: clips.map(toPersistedClip) })
+const updateSceneOrder = () =>
+  playlistStore
+    .updatePlaylist(currentPlaylist.value, { tracks: scenes.value.map(toPersistedTrack) })
+    .catch((e) => console.error('scene reorder failed', e))
+
+// 영상 추가 (창당 1개, 창 수 초과 불가) — 영상/이미지 파일만 표시
+const addVideo = (sceneIdx) => {
+  const scene = scenes.value[sceneIdx]
+  const win = firstUnusedWindow(scene)
+  if (win == null) return
   $q.dialog({
-    component: editImageShowTime,
+    component: addTracks,
     componentProps: {
-      time: track.time || 0,
+      playlist: currentPlaylistObj.value,
+      single: true,
+      mimeFilter: clipMimeFilter(win),
     },
-    persistent: true,
-  }).onOk(async (time) => {
-    try {
-      await usePlaylistStore().updateImageTime(currentPlaylist.value, index, time)
-    } catch (error) {
-      console.error('Error updating track time:', error)
-    }
+  }).onOk((sel) => {
+    if (!sel || !sel.length) return
+    persistScene(sceneIdx, [...(scene.clips || []), { window: win, uuid: sel[0].uuid }])
   })
 }
+const replaceVideo = (sceneIdx, clip) => {
+  $q.dialog({
+    component: addTracks,
+    componentProps: {
+      playlist: currentPlaylistObj.value,
+      single: true,
+      mimeFilter: clipMimeFilter(clipWin(clip)),
+    },
+  }).onOk((sel) => {
+    if (!sel || !sel.length) return
+    const clips = (scenes.value[sceneIdx].clips || []).map((c) =>
+      clipWin(c) === clipWin(clip) ? { ...c, uuid: sel[0].uuid } : c,
+    )
+    persistScene(sceneIdx, clips)
+  })
+}
+const setClipWindow = (sceneIdx, clip, newWin) => {
+  newWin = Number(newWin)
+  const scene = scenes.value[sceneIdx]
+  if (usedWindows(scene, clipWin(clip)).has(newWin)) return // 이미 사용 중인 창
+  const clips = (scene.clips || []).map((c) =>
+    clipWin(c) === clipWin(clip) ? { ...c, window: newWin } : c,
+  )
+  persistScene(sceneIdx, clips)
+}
+const setClipDelay = (sceneIdx, clip, ms) => {
+  const clips = (scenes.value[sceneIdx].clips || []).map((c) =>
+    clipWin(c) === clipWin(clip) ? { ...c, delay_ms: Math.max(0, Number(ms) || 0) } : c,
+  )
+  persistScene(sceneIdx, clips)
+}
+const removeVideo = (sceneIdx, clip) =>
+  persistScene(
+    sceneIdx,
+    (scenes.value[sceneIdx].clips || []).filter((c) => clipWin(c) !== clipWin(clip)),
+  )
+const patchClip = (sceneIdx, win, p) => {
+  const clips = (scenes.value[sceneIdx].clips || []).map((c) =>
+    clipWin(c) === win ? { ...c, ...p } : c,
+  )
+  persistScene(sceneIdx, clips)
+}
+// 장면 단위 추가 오디오 리스트 저장 (SceneAudioList의 onPatchAudios — audios 배열)
+const persistSceneAudios = (sceneIdx, audios) =>
+  playlistStore.updateTrack(currentPlaylist.value, sceneIdx, {
+    audios: (audios || []).map(toPersistedAudio),
+  })
+// 오디오 채널 수(임베디드+추가) — 배지 표시용
+const sceneAudioChannels = (scene) => {
+  const cnt = (file) => {
+    const a = (file?.metadata?.streams || []).find((s) => s.codec_type === 'audio')
+    return a?.channels > 0 ? a.channels : 0
+  }
+  let n = 0
+  for (const c of scene.clips || []) n += cnt(c)
+  for (const a of scene.audios || []) n += cnt(a) || 2
+  return n
+}
+
+// 장면에 추가 오디오 파일 넣기 (평면 리스트 하단 버튼)
+const addAudio = (sceneIdx) => {
+  $q.dialog({
+    component: addTracks,
+    componentProps: { playlist: currentPlaylistObj.value, mimeFilter: 'audio/' },
+  }).onOk((sel) => {
+    if (!sel || !sel.length) return
+    const added = sel.map((f) => ({
+      uuid: f.uuid,
+      volume: 100,
+      muted: false,
+      loop: false,
+      channel_map: null,
+      channels: null,
+    }))
+    persistSceneAudios(sceneIdx, [...(scenes.value[sceneIdx].audios || []), ...added])
+  })
+}
+
+// 장면 추가 — 빈 장면(빈 트랙)만 만든다. 이후 "영상 추가"/"오디오 추가"로 채운다.
+// (아무것도 안 채운 빈 장면은 재생 시 서버가 건너뛴다.)
+const addScene = () => {
+  playlistStore.updatePlaylist(currentPlaylist.value, {
+    tracks: [...scenes.value.map(toPersistedTrack), { clips: [], audios: [] }],
+  })
+}
+const removeScene = (sceneIdx) =>
+  playlistStore.updatePlaylist(currentPlaylist.value, {
+    tracks: scenes.value.filter((_, i) => i !== sceneIdx).map(toPersistedTrack),
+  })
+// 장면 이름 지정(선택) — 비우면 기본 "장면 N" 표시로 복귀. 이름만 바꾸는 부분 갱신이라 재생 무영향.
+const sceneName = (scene) => (typeof scene?.name === 'string' ? scene.name.trim() : '')
+const sceneLabel = (scene, index) =>
+  sceneName(scene) || t('playlists.tracksView.sceneN', { n: index + 1 })
+const setSceneName = (sceneIdx, name) =>
+  playlistStore.updateTrack(currentPlaylist.value, sceneIdx, {
+    name: (name || '').trim().slice(0, 40),
+  })
+const playScene = (index) => playlistStore.playlistPlay(playlistStore.getCurrentPlaylistId(), index)
 </script>
 
 <template>
   <div>
-    <div v-if="!hasPlaylist" class="text-center text-grey-7 q-pa-lg">
-      <span>No playlist selected.</span>
+    <div class="row items-center q-mb-sm">
+      <q-space />
+      <!-- 창별 오디오 전체 뮤트 — 버튼 하나 + 팝업 (뮤트된 창 수 배지) -->
+      <q-btn
+        v-if="windowList.length"
+        dense
+        flat
+        round
+        class="q-mr-xs"
+        :icon="mutedCount ? 'volume_off' : 'volume_up'"
+        :color="mutedCount ? 'negative' : 'grey-7'"
+      >
+        <q-badge v-if="mutedCount" color="negative" floating rounded :label="mutedCount" />
+        <q-tooltip>{{ $t('playlists.tracksView.windowMute') }}</q-tooltip>
+        <q-menu>
+          <q-list dense style="min-width: 200px">
+            <q-item v-for="w in windowList" :key="w.id" clickable @click="toggleWindowMute(w.id)">
+              <q-item-section avatar>
+                <q-icon
+                  :name="isWindowMuted(w.id) ? 'volume_off' : 'volume_up'"
+                  :color="isWindowMuted(w.id) ? 'negative' : 'grey-7'"
+                />
+              </q-item-section>
+              <q-item-section>{{ w.name }}</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
+      <q-btn
+        class="q-mr-xs"
+        dense
+        flat
+        no-caps
+        color="primary"
+        icon="add"
+        :label="$t('playlists.tracksView.addScene')"
+        @click="addScene"
+        :disable="windowList.length === 0"
+      />
     </div>
-    <div v-else-if="currentTracks.length === 0" class="text-center text-grey-7 q-pa-lg">
-      <span>No tracks available.</span>
+
+    <div v-if="!hasPlaylist" class="text-center text-muted q-pa-lg">
+      {{ $t('playlists.tracksView.selectPlaylist') }}
     </div>
+    <div v-else-if="windowList.length === 0" class="text-center text-muted q-pa-lg">
+      {{ $t('playlists.tracksView.noOutputWindows') }}
+    </div>
+    <div v-else-if="scenes.length === 0" class="text-center text-muted q-pa-lg">
+      {{ $t('playlists.tracksView.noScenes') }}
+    </div>
+
     <Draggable
       v-else
-      v-model="currentTracks"
-      @end="updateTrackOrder(currentTracks)"
-      item-key="uuid"
-      group="tracks"
+      v-model="scenes"
+      @end="updateSceneOrder"
+      item-key="id"
+      handle=".drag-handle"
       animation="200"
     >
-      <template #item="{ element, index }">
-        <q-item
-          :key="index"
-          clickable
-          :class="isTrackPlaying(index) ? 'bg-yellow-2' : 'bg-grey-2'"
-          style="border-radius: 8px; margin-bottom: 4px; background-color: #f9f9f9"
+      <template #item="{ element: scene, index }">
+        <q-card
+          flat
+          bordered
+          class="scene-card q-mb-sm"
+          :class="{ 'scene-card--active': isScenePlaying(index) }"
         >
-          <q-item-section avatar>
-            <q-img
-              v-if="element.mimetype.startsWith('image/') || element.mimetype.startsWith('video/')"
-              :src="`${getAddr()}/api/files/thumbnail/${element.uuid}`"
-              style="width: 50px; height: 30px"
-            />
-            <q-icon
-              v-else
-              name="play_arrow"
-              size="2rem"
-              color="primary"
-              style="width: 50px; height: 30px"
-            />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ element.filename }}</q-item-label>
-            <q-item-section caption v-if="element.time"
-              ><div class="text-caption text-grey-8">
-                <span>Time:</span> <span>{{ element.time }}</span>
-              </div>
-            </q-item-section>
-          </q-item-section>
-          <q-item-section side>
-            <div class="row no-wrap items-center">
-              <q-btn
-                v-if="element.is_image"
-                flat
-                round
-                color="primary"
-                icon="edit"
-                size="sm"
-                @click="editTime(element, index)"
-              ></q-btn>
-              <q-btn
-                flat
-                round
-                color="primary"
-                icon="play_arrow"
-                size="sm"
-                @click.stop="playDirectly(index)"
-              />
-              <q-btn
-                flat
-                round
-                color="negative"
-                icon="delete"
-                size="sm"
-                @click.stop="usePlaylistStore().removeTrackFromPlaylist(currentPlaylist, index)"
-              />
+          <!-- 헤더: 빈 영역 클릭 = 접기/펼치기, 이름 클릭 = 이름 편집 -->
+          <div class="scene-head row items-center cursor-pointer" @click="toggleCollapse(index)">
+            <div class="drag-handle" style="cursor: grab" @click.stop>
+              <q-icon name="drag_indicator" color="grey-6" />
             </div>
-          </q-item-section>
-        </q-item>
+            <span class="scene-idx">{{ index + 1 }}</span>
+
+            <div class="scene-no row items-baseline no-wrap" @click.stop>
+              <span
+                class="text-weight-medium ellipsis cursor-pointer"
+                :class="{ 'text-muted': !sceneName(scene) }"
+                >{{ sceneLabel(scene, index) }}</span
+              >
+              <q-popup-edit
+                :model-value="scene.name || ''"
+                @save="(val) => setSceneName(index, val)"
+                anchor="bottom left"
+                v-slot="scope"
+              >
+                <q-input
+                  v-model="scope.value"
+                  dense
+                  autofocus
+                  counter
+                  maxlength="40"
+                  :label="$t('playlists.tracksView.sceneName')"
+                  :placeholder="$t('playlists.tracksView.sceneN', { n: index + 1 })"
+                  @keyup.enter="scope.set"
+                >
+                  <template #append>
+                    <q-icon
+                      v-if="scope.value"
+                      name="close"
+                      class="cursor-pointer"
+                      @click="scope.value = ''"
+                    />
+                    <q-btn flat dense round icon="check" color="grey-7" @click="scope.set" />
+                  </template>
+                </q-input>
+              </q-popup-edit>
+              <q-tooltip>{{ $t('playlists.tracksView.setSceneNameTooltip') }}</q-tooltip>
+            </div>
+
+            <!-- 요약: 영상 N · 오디오 Mch (상세는 호버) -->
+            <span class="scene-summary text-caption text-muted q-ml-sm">
+              <q-icon name="movie" size="14px" />{{ (scene.clips || []).length }}
+              <template v-if="sceneAudioChannels(scene)">
+                · <q-icon name="graphic_eq" size="14px" />{{ sceneAudioChannels(scene) }}
+              </template>
+              <q-tooltip>
+                {{ $t('playlists.tracksView.videoCount', { n: (scene.clips || []).length }) }}
+                <template v-if="sceneAudioChannels(scene)">
+                  · {{ $t('playlists.tracksView.audioCount', { n: sceneAudioChannels(scene) }) }}
+                </template>
+              </q-tooltip>
+            </span>
+            <q-space />
+            <q-btn dense flat round icon="play_arrow" color="grey-7" @click.stop="playScene(index)"
+              ><q-tooltip>{{ $t('playlists.tracksView.playFromScene') }}</q-tooltip></q-btn
+            >
+            <q-btn dense flat round icon="delete" color="grey-7" @click.stop="removeScene(index)"
+              ><q-tooltip>{{ $t('playlists.tracksView.deleteScene') }}</q-tooltip></q-btn
+            >
+            <q-btn
+              dense
+              flat
+              round
+              size="sm"
+              :icon="isCollapsed(index) ? 'expand_less' : 'expand_more'"
+              color="grey-7"
+              @click.stop="toggleCollapse(index)"
+            >
+              <q-tooltip>{{
+                isCollapsed(index)
+                  ? $t('playlists.tracksView.expand')
+                  : $t('playlists.tracksView.collapse')
+              }}</q-tooltip>
+            </q-btn>
+          </div>
+
+          <div v-show="!isCollapsed(index)">
+            <!-- 영상 영역: 클립 세로 리스트 (창당 1개) -->
+            <div class="clip-list">
+              <div class="section-label">
+                <q-icon name="movie" size="14px" color="blue-grey-6" /> {{ $t('playlists.tracksView.video') }}
+              </div>
+              <div v-for="clip in sceneClips(scene)" :key="clip.window" class="clip-item">
+                <div class="clip-row">
+                  <q-img
+                    v-if="isThumbable(clip)"
+                    :src="`${getAddr()}/api/files/thumbnail/${clip.uuid}`"
+                    class="clip-thumb"
+                    @click="replaceVideo(index, clip)"
+                  />
+                  <div
+                    v-else
+                    class="clip-thumb flex flex-center"
+                    @click="replaceVideo(index, clip)"
+                  >
+                    <q-icon name="movie" size="20px" color="grey-6" />
+                  </div>
+                  <div class="clip-main">
+                    <div class="clip-name ellipsis">{{ clip.filename }}</div>
+                    <div class="row items-center q-gutter-x-sm q-mt-xs">
+                      <select
+                        class="mini-select"
+                        :value="clip.window"
+                        @change="setClipWindow(index, clip, $event.target.value)"
+                      >
+                        <option
+                          v-for="o in windowOptions(scene, clip)"
+                          :key="o.value"
+                          :value="o.value"
+                        >
+                          {{ o.label }}
+                        </option>
+                      </select>
+                      <DelayChip
+                        :model-value="clip.delay_ms ?? 0"
+                        @save="(ms) => setClipDelay(index, clip, ms)"
+                      />
+                    </div>
+                  </div>
+                  <q-btn dense flat round size="sm" icon="more_vert" color="grey-7">
+                    <q-menu auto-close>
+                      <q-list dense style="min-width: 160px">
+                        <q-item clickable @click="replaceVideo(index, clip)">
+                          <q-item-section avatar><q-icon name="swap_horiz" /></q-item-section>
+                          <q-item-section>{{ $t('playlists.tracksView.replaceVideoTooltip') }}</q-item-section>
+                        </q-item>
+                        <q-item clickable @click="removeVideo(index, clip)">
+                          <q-item-section avatar><q-icon name="close" color="negative" /></q-item-section>
+                          <q-item-section>{{ $t('common.remove') }}</q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
+                </div>
+              </div>
+
+              <!-- 비활성(창 수 도달) 시 이유는 툴팁으로 -->
+              <span class="inline-block">
+                <q-btn
+                  flat
+                  dense
+                  icon="add"
+                  :label="$t('playlists.tracksView.addVideo')"
+                  color="grey-7"
+                  class="add-video-btn"
+                  :disable="!canAddVideo(scene)"
+                  @click="addVideo(index)"
+                />
+                <q-tooltip v-if="!canAddVideo(scene)">
+                  {{ $t('playlists.tracksView.oneVideoPerWindow', { n: windowList.length }) }}
+                </q-tooltip>
+              </span>
+            </div>
+
+            <!-- 오디오 영역: 기본 접힘. 헤더 한 줄 클릭 시 채널 리스트 + 추가 -->
+            <div class="audio-section">
+              <div class="audio-section-head cursor-pointer" @click="toggleAudio(index)">
+                <q-icon name="graphic_eq" size="16px" color="grey-7" />
+                <span class="text-caption text-weight-medium q-ml-xs">{{ $t('playlists.tracksView.audio') }}</span>
+                <span v-if="sceneAudioChannels(scene)" class="text-caption text-muted q-ml-xs">
+                  · {{ $t('playlists.tracksView.audioCount', { n: sceneAudioChannels(scene) }) }}
+                </span>
+                <q-space />
+                <q-icon
+                  :name="isAudioOpen(index) ? 'expand_less' : 'expand_more'"
+                  size="18px"
+                  color="grey-7"
+                />
+              </div>
+              <div v-show="isAudioOpen(index)">
+                <SceneAudioList
+                  :scene="scene"
+                  :scene-idx="index"
+                  :on-patch-clip="(win, p) => patchClip(index, win, p)"
+                  :on-patch-audios="(audios) => persistSceneAudios(index, audios)"
+                />
+                <q-btn
+                  flat
+                  dense
+                  icon="add"
+                  :label="$t('playlists.tracksView.addAudio')"
+                  color="grey-7"
+                  class="add-audio-btn"
+                  @click="addAudio(index)"
+                />
+              </div>
+            </div>
+          </div>
+        </q-card>
       </template>
     </Draggable>
   </div>
 </template>
 
 <style scoped>
-.track-playing {
-  background-color: #ff0000; /* 회색 배경 */
+.scene-idx {
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  flex: 0 0 auto;
 }
-.track-item {
-  transition: background-color 0.3s;
+.scene-summary {
+  white-space: nowrap;
 }
-
-.track-item:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+.scene-card {
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+}
+.scene-card--active {
+  border-color: var(--accent);
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak, rgba(59, 130, 246, 0.1));
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.scene-head {
+  padding: 6px 10px;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.scene-no {
+  color: var(--text-1);
+  min-width: 0;
+  max-width: 16rem;
+}
+.clip-list {
+  padding: 6px 10px;
+}
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #999);
+  margin-bottom: 2px;
+}
+.clip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.clip-thumb {
+  width: 72px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.clip-main {
+  flex: 1;
+  min-width: 0;
+}
+.clip-name {
+  font-size: 13px;
+  color: var(--text-1);
+}
+.mini-select,
+.mini-num {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  padding: 2px 4px;
+  outline: none;
+}
+.mini-num {
+  width: 64px;
+  text-align: right;
+}
+.mini-select:focus,
+.mini-num:focus {
+  border-color: var(--accent);
+}
+.add-video-btn,
+.add-audio-btn {
+  margin-top: 6px;
+}
+.audio-section {
+  border-top: 2px solid var(--border-strong);
+  padding: 6px 10px 8px;
+  background: var(--surface-0);
+}
+.audio-section-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
 }
 </style>

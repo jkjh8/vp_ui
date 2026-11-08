@@ -1,10 +1,13 @@
 <script setup>
+import SettingRow from 'src/components/ui/SettingRow.vue'
 import { useQuasar } from 'quasar'
 import { useApiStore } from 'src/stores/useApi'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import colorPicker from '../dialogs/colorPicker.vue'
-import DelayedTooltip from '../delayedTooltip.vue'
+import DelayedTooltip from '../DelayedTooltip.vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 const { isBright } = useStatusStore()
 const { apiCallWithLoading } = useApiStore()
 
@@ -14,12 +17,9 @@ const $q = useQuasar()
 const openDialog = () => {
   $q.dialog({
     component: colorPicker,
-    componentProps: {
-      background: pStatus.value.background,
-    },
+    componentProps: { background: pStatus.value.backgroundColor },
   }).onOk(async (color) => {
     try {
-      // rgb에서 hex로 변환
       if (color.startsWith('rgb')) {
         const rgb = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
         if (rgb) {
@@ -33,13 +33,10 @@ const openDialog = () => {
         '/player/background',
         'POST',
         { color },
-        `Updating background color to ${color}...`,
+        t('setup.backgroundColor.updating', { color }),
       )
-      pStatus.value.background = color
-      $q.notify({
-        type: 'positive',
-        message: `Background color updated to ${color}`,
-      })
+      pStatus.value.backgroundColor = color
+      $q.notify({ type: 'positive', message: t('setup.backgroundColor.updated', { color }) })
     } catch (error) {
       console.error('Error occurred while converting color:', error)
     }
@@ -48,28 +45,24 @@ const openDialog = () => {
 </script>
 
 <template>
-  <div class="row justify-between items-center">
-    <div>
-      <q-icon name="palette" size="sm" color="primary"></q-icon>
-      <span class="q-ml-sm text-bold">Background Color</span>
-      <!-- 현재 색상 표시 -->
+  <SettingRow icon="palette" :label="$t('setup.backgroundColor.title')">
+    <template #control>
       <q-chip
         dense
-        class="q-ml-sm q-pa-sm"
-        :style="{
-          backgroundColor: pStatus.background,
-          fontSize: '0.6rem',
-        }"
-        :text-color="isBright(pStatus.background) ? 'black' : 'white'"
-        :label="pStatus.background"
-      >
-      </q-chip>
-    </div>
-    <!-- 컬러 선택 color picker -->
-    <q-btn round flat color="primary" icon="colorize" @click="openDialog">
-      <DelayedTooltip :msg="'Background Color: ' + pStatus.background" />
-    </q-btn>
-  </div>
+        class="q-pa-sm color-chip"
+        :style="{ backgroundColor: pStatus.backgroundColor }"
+        :text-color="isBright(pStatus.backgroundColor) ? 'black' : 'white'"
+        :label="pStatus.backgroundColor"
+      />
+      <q-btn round flat color="primary" icon="colorize" @click="openDialog">
+        <DelayedTooltip :msg="$t('setup.backgroundColor.tooltip', { color: pStatus.backgroundColor })" />
+      </q-btn>
+    </template>
+  </SettingRow>
 </template>
 
-<style scoped></style>
+<style scoped>
+.color-chip {
+  font-size: 0.6rem;
+}
+</style>

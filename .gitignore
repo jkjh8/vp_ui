@@ -33,3 +33,6 @@ yarn-error.log*
 .env.local*
 
 yarn.lock
+# 로컬 전용 — 공개 저장소 제외
+docs/
+.prettierrc copy.json

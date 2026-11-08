@@ -12,14 +12,16 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-$primary: #3eaf7c;
-$secondary: #26a69a;
-$accent: #9c27b0;
+// 미니멀 플랫 팔레트 — 라이트/다크 양쪽에서 AA 대비. tokens.scss의 --accent와 정렬.
+$primary: #3eaf7c; // 녹색 primary (tokens.scss --accent 와 정렬)
+$secondary: #3d7d78; // 틸 = 오디오 도메인 강조 (채도 낮춤)
+$accent: #7c3aed; // 바이올렛
 
-$dark: #1d1d1d;
-$dark-page: #121212;
+// Quasar 다크 컴포넌트(q-card/q-page/q-menu…)가 tokens.scss의 서피스와 일치하도록 정렬
+$dark: #171b21; // = --surface-1 (다크 q-card/menu)
+$dark-page: #0f1216; // = --surface-0 (다크 q-page)
 
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+$positive: #16a34a;
+$negative: #dc2626;
+$info: #0ea5e9;
+$warning: #f59e0b;

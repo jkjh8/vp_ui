@@ -67,7 +67,7 @@ const filteredMeta = computed(() => {
           <q-icon name="info" color="primary" size="sm" class="q-mr-sm" />
           <!-- 파일명에 한글이 깨질 경우 decodeURIComponent 적용 -->
           <div class="text-h6">
-            {{ props.fieldname }}
+            {{ props.fieldname || $t('dialogs.metaData.fieldnameDefault') }}
           </div>
         </div>
       </q-card-section>
@@ -213,7 +213,7 @@ const filteredMeta = computed(() => {
           </template>
         </div>
         <div v-else>
-          <em class="text-grey">표시할 메타데이터가 없습니다.</em>
+          <em class="text-grey">{{ $t('dialogs.metaData.noData') }}</em>
         </div>
       </q-card-section>
 
@@ -234,9 +234,9 @@ const filteredMeta = computed(() => {
   min-height: 300px;
   display: flex;
   flex-direction: column;
-  border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1.5px solid #e0e0e0; /* 테두리 추가 */
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-1);
+  border: 1px solid var(--border);
 }
 .meta-scroll-area {
   flex: 1 1 0;
@@ -244,7 +244,7 @@ const filteredMeta = computed(() => {
   max-height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #bbb #fff;
+  scrollbar-color: var(--border-strong) var(--surface-2);
 }
 .meta-scroll-area::-webkit-scrollbar {
   width: 8px;

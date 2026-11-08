@@ -12,18 +12,19 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
+    "build:app": "quasar build && node scripts/copy-to-app.mjs",
     "postinstall": "quasar prepare"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^2.5.0",
+    "@quasar/cli": "^5.0.9",
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
     "pinia": "^3.0.1",
     "quasar": "^2.16.0",
     "sass-embedded": "^1.89.0",
     "socket.io-client": "^4.8.1",
-    "time-convert": "^0.0.2",
     "vue": "^3.4.18",
+    "vue-i18n": "^11.4.8",
     "vue-router": "^4.0.0",
     "vuedraggable": "^4.1.0"
   },

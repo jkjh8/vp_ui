@@ -1,4 +1,5 @@
 <script setup>
+import SettingRow from 'src/components/ui/SettingRow.vue'
 import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 
@@ -10,31 +11,32 @@ const updateValue = async (value) => {
 </script>
 
 <template>
-  <div class="row justify-between items-center q-my-sm">
-    <div>
-      <q-icon name="timer " size="sm" color="primary"></q-icon>
-      <span class="q-ml-sm text-bold">Image Showing Time</span>
-    </div>
-    <div class="row items-center">
+  <SettingRow icon="timer" :label="$t('setup.imageTime.title')">
+    <template #control>
       <q-btn
         flat
         round
+        size="sm"
         icon="chevron_left"
         @click="updateValue(Math.max(0, (Number(pStatus.imageTime) || 0) - 1))"
-        size="sm"
       />
-      <span class="q-mx-md text-bold" style="min-width: 40px; text-align: center">
-        {{ pStatus.imageTime }}<span class="text-caption q-ml-xs">sec</span>
+      <span class="text-bold time-val">
+        {{ pStatus.imageTime }}<span class="text-caption q-ml-xs">{{ $t('setup.imageTime.sec') }}</span>
       </span>
       <q-btn
         flat
         round
+        size="sm"
         icon="chevron_right"
         @click="updateValue(Math.min(60, (Number(pStatus.imageTime) || 0) + 1))"
-        size="sm"
       />
-    </div>
-  </div>
+    </template>
+  </SettingRow>
 </template>
 
-<style scoped></style>
+<style scoped>
+.time-val {
+  min-width: 48px;
+  text-align: center;
+}
+</style>

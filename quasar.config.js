@@ -11,10 +11,11 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['axios', 'socketio'],
+    boot: ['i18n', 'axios', 'socketio', 'theme'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
-    css: ['app.scss'],
+    // tokens.scss = 디자인 토큰(라이트/다크), nanumGothic = 한글 본문 폰트
+    css: ['app.scss', 'tokens.scss', 'nanumGothic.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
@@ -78,7 +79,10 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      // dark: 'auto' = 시스템 따름 (boot/theme.js가 localStorage 저장값으로 오버라이드)
+      config: {
+        dark: 'auto',
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -91,7 +95,7 @@ export default defineConfig((/* ctx */) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: ['Dialog', 'Notify', 'Loading'],
+      plugins: ['Dialog', 'Notify', 'Loading', 'Dark'],
     },
 
     // animations: 'all', // --- includes all animations

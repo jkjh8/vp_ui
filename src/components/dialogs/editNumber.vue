@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
-import DelayedTooltip from '../delayedTooltip.vue'
+import { useI18n } from 'vue-i18n'
+import DelayedTooltip from '../DelayedTooltip.vue'
 
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+const { t } = useI18n()
 
 const props = defineProps({
   title: {
@@ -46,7 +48,10 @@ onMounted(() => {
   editValue.value = props.value
 })
 
-const displayLabel = computed(() => (props.unit ? `${props.label} (${props.unit})` : props.label))
+const displayLabel = computed(() => {
+  const label = props.label || t('dialogs.editNumber.labelDefault')
+  return props.unit ? `${label} (${props.unit})` : label
+})
 </script>
 
 <template>
@@ -55,7 +60,7 @@ const displayLabel = computed(() => (props.unit ? `${props.label} (${props.unit}
       <q-card-section class="row justify-between items-center">
         <div>
           <q-icon name="pin" size="sm" color="primary"></q-icon>
-          <span class="q-ml-sm text-bold">{{ props.title }}</span>
+          <span class="q-ml-sm text-bold">{{ props.title || $t('dialogs.editNumber.titleDefault') }}</span>
         </div>
       </q-card-section>
 
@@ -74,10 +79,10 @@ const displayLabel = computed(() => (props.unit ? `${props.label} (${props.unit}
 
       <q-card-actions align="right">
         <q-btn flat round icon="cancel" color="negative" @click="onDialogCancel">
-          <DelayedTooltip msg="취소" />
+          <DelayedTooltip :msg="$t('common.cancel')" />
         </q-btn>
         <q-btn flat round color="primary" icon="check_circle" @click="onDialogOK(editValue)">
-          <DelayedTooltip msg="확인" />
+          <DelayedTooltip :msg="$t('common.confirm')" />
         </q-btn>
       </q-card-actions>
     </q-card>
@@ -90,8 +95,8 @@ const displayLabel = computed(() => (props.unit ? `${props.label} (${props.unit}
   min-width: 300px;
   display: flex;
   flex-direction: column;
-  border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1.5px solid #e0e0e0;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-1);
+  border: 1px solid var(--border);
 }
 </style>

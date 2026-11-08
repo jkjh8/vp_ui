@@ -1,0 +1,89 @@
+// 디자인 토큰 (미니멀 플랫, 라이트/다크) — 컴포넌트는 이 CSS 변수만 참조한다.
+// Quasar Dark 플러그인이 body에 `body--dark`를 토글하면 아래 오버라이드가 적용됨.
+// 하드코드 색상(#fff/#333/#eee/bg-yellow-2 등)은 전부 이 변수로 치환한다.
+
+:root {
+  // 표면 (배경 계층: 0=페이지, 1=카드, 2=옅은 구획, 3=hover/강조 구획)
+  --surface-0: #f7f8fa;
+  --surface-1: #ffffff;
+  --surface-2: #f2f4f7;
+  --surface-3: #e9edf2;
+
+  // 경계선
+  --border: #e3e7ec;
+  --border-strong: #cdd3db;
+
+  // 텍스트 (1=본문, 2=보조/캡션, 3=흐릿) + 별칭(레거시 컴포넌트가 참조하던 이름)
+  --text-1: #1a2027;
+  --text-2: #5b6672;
+  --text-3: #8a93a0;
+  --text-muted: var(--text-2);
+  --text-faint: var(--text-3);
+
+  // 강조 (accent=브랜드 그린 — primary #3eaf7c와 동일, audio=오디오 도메인 틸)
+  --accent: #3eaf7c;
+  --accent-weak: rgba(62, 175, 124, 0.12);
+  --audio: #3d7d78;
+  --audio-weak: rgba(61, 125, 120, 0.1);
+
+  // 시맨틱 상태색 (quasar.variables.scss와 정렬 — 컴포넌트는 리터럴 셰이드 대신 이 변수 사용)
+  --positive: #16a34a;
+  --positive-weak: rgba(22, 163, 74, 0.12);
+  --negative: #dc2626;
+  --negative-weak: rgba(220, 38, 38, 0.12);
+  --warning: #f59e0b;
+  --warning-weak: rgba(245, 158, 11, 0.14);
+  --info: #0ea5e9;
+
+  // 간격 스케일 (4px 기준)
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  // 형태
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  // 그림자 (미니멀 — 아주 옅게)
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-2: 0 6px 20px rgba(16, 24, 40, 0.1);
+
+  // 타이포
+  --font-sans: 'Roboto', 'NanumGothic', -apple-system, 'Segoe UI', sans-serif;
+}
+
+body.body--dark {
+  --surface-0: #0f1216;
+  --surface-1: #171b21;
+  --surface-2: #1e232b;
+  --surface-3: #262d37;
+
+  --border: #2a313b;
+  --border-strong: #3a424e;
+
+  --text-1: #e6e9ee;
+  --text-2: #a4adba;
+  --text-3: #6d7787;
+
+  --accent: #5cc48f;
+  --accent-weak: rgba(92, 196, 143, 0.18);
+  --audio: #2dd4bf;
+  --audio-weak: rgba(45, 212, 191, 0.16);
+
+  // 시맨틱 상태색 — 다크 서피스에서 더 밝게(AA)
+  --positive: #34d399;
+  --positive-weak: rgba(52, 211, 153, 0.18);
+  --negative: #f87171;
+  --negative-weak: rgba(248, 113, 113, 0.18);
+  --warning: #fbbf24;
+  --warning-weak: rgba(251, 191, 36, 0.2);
+  --info: #38bdf8;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.55);
+}

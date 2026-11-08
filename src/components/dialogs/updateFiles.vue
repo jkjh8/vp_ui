@@ -1,9 +1,15 @@
 <script setup>
 import { useQuasar, useDialogPluginComponent } from 'quasar'
-import DelayedTooltip from '../delayedTooltip.vue'
+import DelayedTooltip from '../DelayedTooltip.vue'
 import { useApiStore } from 'src/stores/useApi'
 import { humanReadableFileSize } from 'src/composables/useUtils'
+import { useI18n } from 'vue-i18n'
 
+const props = defineProps({
+  folderId: { default: null },
+})
+
+const { t } = useI18n()
 const $q = useQuasar()
 const { dialogRef, onDialogOK } = useDialogPluginComponent()
 const { getAddr } = useApiStore()
@@ -12,10 +18,13 @@ const getUrl = () => {
   return `${getAddr()}/api/files`
 }
 
+// 업로드 대상 폴더를 각 POST에 텍스트 필드로 실어보냄 (multer.any()가 req.body로 파싱)
+const formFields = () => [{ name: 'folderId', value: props.folderId ?? '' }]
+
 const onRejected = (rejectEntries) => {
   $q.notify({
     type: 'negative',
-    message: `${rejectEntries.length} file(s) did not pass validation constraints`,
+    message: t('dialogs.updateFiles.rejected', { count: rejectEntries.length }),
   })
 }
 </script>
@@ -33,6 +42,7 @@ const onRejected = (rejectEntries) => {
           multiple
           :url="getUrl"
           :field-name="(file) => encodeURIComponent(file.name)"
+          :form-fields="formFields"
           accept="image/*,video/*,audio/*"
           @rejected="onRejected"
         >
@@ -47,7 +57,7 @@ const onRejected = (rejectEntries) => {
                 icon="clear_all"
                 @click="scope.removeQueuedFiles"
               >
-                <DelayedTooltip msg="Clear All" />
+                <DelayedTooltip :msg="$t('dialogs.updateFiles.clearAll')" />
               </q-btn>
               <!-- remove uploaded files -->
               <q-btn
@@ -57,7 +67,7 @@ const onRejected = (rejectEntries) => {
                 icon="done_all"
                 @click="scope.removeUploadedFiles"
               >
-                <DelayedTooltip msg="Remove Uploaded Files" />
+                <DelayedTooltip :msg="$t('dialogs.updateFiles.removeUploaded')" />
               </q-btn>
               <q-icon
                 v-if="scope.queuedFiles.length === 0 && scope.uploadedFiles.length === 0"
@@ -68,7 +78,7 @@ const onRejected = (rejectEntries) => {
               <q-spinner v-if="scope.isUploading" class="q-uploader__spinner" />
               <!-- Name Tag -->
               <div class="col q-px-sm">
-                <div class="q-uploader__title">Upload Files</div>
+                <div class="q-uploader__title">{{ $t('dialogs.updateFiles.uploadFilesTitle') }}</div>
                 <div class="q-uploader__subtitle">
                   {{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}
                 </div>
@@ -84,7 +94,7 @@ const onRejected = (rejectEntries) => {
                 @click="scope.pickFiles"
               >
                 <q-uploader-add-trigger />
-                <DelayedTooltip msg="Pick Files" />
+                <DelayedTooltip :msg="$t('dialogs.updateFiles.pickFiles')" />
               </q-btn>
               <!-- upload files -->
               <q-btn
@@ -95,11 +105,11 @@ const onRejected = (rejectEntries) => {
                 icon="cloud_upload"
                 @click="scope.upload"
               >
-                <DelayedTooltip msg="Upload Files" />
+                <DelayedTooltip :msg="$t('dialogs.updateFiles.uploadFiles')" />
               </q-btn>
               <!-- abort upload -->
               <q-btn v-if="scope.isUploading" round flat icon="clear" @click="scope.abort">
-                <DelayedTooltip msg="Abort Upload" />
+                <DelayedTooltip :msg="$t('dialogs.updateFiles.abortUpload')" />
               </q-btn>
             </div>
           </template>
@@ -113,8 +123,7 @@ const onRejected = (rejectEntries) => {
               style="cursor: pointer"
             >
               <q-icon name="add_circle" size="3rem" color="grey-5" />
-              <div class="text-h6 text-grey-7 q-mt-sm">Add Files</div>
-              <!-- Browse Files 버튼 제거됨 -->
+              <div class="text-h6 text-grey-7 q-mt-sm">{{ $t('dialogs.updateFiles.addFiles') }}</div>
             </div>
             <q-list v-else class="fit">
               <q-item v-for="file in scope.files" :key="file.name" class="q-py-md">
@@ -152,7 +161,7 @@ const onRejected = (rejectEntries) => {
 
       <q-card-actions align="right">
         <q-btn round flat icon="cancel" color="grey" @click="onDialogOK">
-          <DelayedTooltip msg="Close" />
+          <DelayedTooltip :msg="$t('common.close')" />
         </q-btn>
       </q-card-actions>
     </q-card>
@@ -164,22 +173,22 @@ const onRejected = (rejectEntries) => {
   width: 50%;
   max-width: 800px;
   min-width: 350px;
-  border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9); /* 배경색에 투명도 추가 */
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-1);
   overflow: hidden;
 }
 
 .empty-list-message {
   height: 150px;
   width: 100%;
-  border: 2px dashed #ddd;
-  border-radius: 8px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-md);
   margin: 16px;
   max-width: calc(100% - 32px);
   transition: border-color 0.2s;
 }
 .empty-list-message:hover {
-  border-color: #90caf9;
-  background: rgba(144, 202, 249, 0.08);
+  border-color: var(--accent);
+  background: var(--accent-weak);
 }
 </style>

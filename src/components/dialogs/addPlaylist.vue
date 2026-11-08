@@ -2,13 +2,22 @@
 import { ref, onMounted, computed } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
 import { usePlaylistStore } from 'src/stores/usePlaylist'
+import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
-import DelayedTooltip from '../delayedTooltip.vue'
+import { useI18n } from 'vue-i18n'
+import DelayedTooltip from '../DelayedTooltip.vue'
 
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+const { t } = useI18n()
 
 const playlistStore = usePlaylistStore()
 const { playlists } = storeToRefs(playlistStore)
+const { pStatus } = storeToRefs(useStatusStore())
+
+const modeOptions = computed(() => [
+  { label: t('dialogs.addPlaylist.modeSceneLabel'), value: 'scene' },
+  { label: t('dialogs.addPlaylist.modeWindowLabel'), value: 'window' },
+])
 
 // props로 기존 데이터를 받음
 const props = defineProps({
@@ -23,6 +32,7 @@ const playlist = ref({
   playlistId: 0,
   name: '',
   description: '',
+  mode: 'scene', // 'scene' | 'window'
 })
 
 // 고유한 playlistId 생성
@@ -39,11 +49,12 @@ const generatePlaylistId = () => {
 onMounted(() => {
   if (props.initialData?.playlistId) {
     // 수정 모드
-    playlist.value = { ...props.initialData }
+    playlist.value = { mode: 'scene', ...props.initialData }
   } else {
-    // 추가 모드
+    // 추가 모드 — 기본 타입 = 현재 전역 작업 모드
     playlist.value.playlistId = generatePlaylistId()
     playlist.value.name = `playlist ${playlists.value.length + 1}`
+    playlist.value.mode = pStatus.value.playbackMode === 'window' ? 'window' : 'scene'
   }
 })
 
@@ -58,7 +69,7 @@ const existsPlaylistId = (id) => {
   }
   return (
     !playlists.value.some((p) => p.playlistId === Number(id)) ||
-    '이미 존재하는 플레이리스트 ID입니다.'
+    t('dialogs.addPlaylist.duplicateIdError')
   )
 }
 </script>
@@ -69,7 +80,11 @@ const existsPlaylistId = (id) => {
       <q-card-section class="row items-center">
         <q-icon name="playlist_add" size="2em" color="primary" />
         <div class="text-h6 q-ml-md">
-          {{ props.initialData?.playlistId ? '플레이리스트 수정' : '새 플레이리스트 만들기' }}
+          {{
+            props.initialData?.playlistId
+              ? $t('dialogs.addPlaylist.editTitle')
+              : $t('dialogs.addPlaylist.createTitle')
+          }}
         </div>
       </q-card-section>
       <q-form @submit.prevent="onDialogOK(playlist)">
@@ -77,22 +92,22 @@ const existsPlaylistId = (id) => {
         <q-card-section class="q-pt-none">
           <q-input
             v-model="playlist.name"
-            label="플레이리스트 이름"
+            :label="$t('dialogs.addPlaylist.nameLabel')"
             filled
             dense
             autofocus
             :error="!isNameValid"
-            :error-message="!isNameValid ? '플레이리스트 이름을 입력해주세요.' : ''"
+            :error-message="!isNameValid ? $t('dialogs.addPlaylist.nameRequired') : ''"
           >
             <template v-slot:hint>
               <div class="text-caption text-grey-6">
-                현재 {{ playlists.length }}개의 플레이리스트가 있습니다
+                {{ $t('dialogs.addPlaylist.currentCount', { count: playlists.length }) }}
               </div>
             </template>
           </q-input>
           <q-input
             v-model="playlist.playlistId"
-            label="플레이리스트 ID (자동 생성)"
+            :label="$t('dialogs.addPlaylist.idLabel')"
             filled
             dense
             type="number"
@@ -100,24 +115,48 @@ const existsPlaylistId = (id) => {
             :rules="[existsPlaylistId]"
             lazy-rules
           />
+          <q-select
+            v-model="playlist.mode"
+            :options="modeOptions"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+            filled
+            dense
+            class="q-mt-md"
+            :label="$t('dialogs.addPlaylist.typeLabel')"
+          >
+            <template v-slot:hint>
+              <div class="text-caption text-grey-6">
+                {{ $t('dialogs.addPlaylist.typeHint') }}
+              </div>
+            </template>
+          </q-select>
           <q-input
             v-model="playlist.description"
-            label="설명 (선택사항)"
+            :label="$t('dialogs.addPlaylist.descriptionLabel')"
             outlined
             dense
             type="textarea"
             rows="2"
             class="q-mt-md"
-            placeholder="플레이리스트에 대한 설명을 입력하세요..."
+            :placeholder="$t('dialogs.addPlaylist.descriptionPlaceholder')"
           />
         </q-card-section>
 
         <q-card-actions align="right">
           <q-btn round flat icon="cancel" color="grey" @click="onDialogCancel">
-            <DelayedTooltip msg="취소" />
+            <DelayedTooltip :msg="$t('common.cancel')" />
           </q-btn>
           <q-btn round flat icon="check_circle" color="primary" type="submit">
-            <DelayedTooltip msg="{{ props.initialData?.playlistId ? '수정하기' : '만들기' }}" />
+            <DelayedTooltip
+              :msg="
+                props.initialData?.playlistId
+                  ? $t('dialogs.addPlaylist.editAction')
+                  : $t('dialogs.addPlaylist.createAction')
+              "
+            />
           </q-btn>
         </q-card-actions>
       </q-form>
@@ -127,7 +166,7 @@ const existsPlaylistId = (id) => {
 
 <style scoped>
 .q-card {
-  border-radius: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-1);
 }
 </style>

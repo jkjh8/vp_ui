@@ -1,43 +1,94 @@
-// app global css in SCSS form
-.bg-tooltip {
-  background: rgba(1, 1, 1, 0.5);
-}
+// app global css in SCSS form — 토큰(tokens.scss) 기반 공용 클래스.
+// 색상/형태는 항상 CSS 변수(var(--*))로만 지정해 라이트/다크가 자동 전환되게 한다.
 
-.name {
-  font-size: 1rem;
-  font-weight: 400;
-  font-family: NanumSquare;
-}
-
-.header {
-  background: #fff;
-  height: 3.5rem;
-  color: #333;
-  padding: 0 5%;
-  border-bottom: 1px solid #eee;
-}
-
-.footer {
-  background: #fff;
-  color: #333;
-  border-top: 1px solid #eee;
-}
-
-.header-font {
-  font-family: NanumSquare;
-  font-weight: 800;
-  font-size: 1.5rem;
-}
-
-.body-font {
-  font-family: NanumSquare;
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-0);
+  color: var(--text-1);
 }
 
 .pointer {
   cursor: pointer;
 }
 
+// ── 타이포 헬퍼 ─────────────────────────────────────────────
+.header-font {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
 .text-title {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  color: var(--text-1);
+}
+.text-muted {
+  color: var(--text-2);
+}
+.text-faint {
+  color: var(--text-3);
+}
+
+// ── 레이아웃 크롬 ───────────────────────────────────────────
+.header {
+  background: var(--surface-1);
+  height: 3.25rem;
+  color: var(--text-1);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.footer {
+  background: var(--surface-1);
+  color: var(--text-1);
+  border-top: 1px solid var(--border);
+}
+
+// ── 표면/카드 ───────────────────────────────────────────────
+.app-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+.surface-2 {
+  background: var(--surface-2);
+}
+
+// ── 썸네일 ──────────────────────────────────────────────────
+.thumb {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+// ── 리스트 행 (플레이리스트/트랙/네비 공통) ─────────────────
+.list-row {
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.list-row:hover {
+  background: var(--surface-3);
+}
+.list-row--active {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+}
+
+// ── 다이얼로그 공통 (약 15종 상속) ──────────────────────────
+.dialog-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  color: var(--text-1);
+}
+
+// ── 툴팁 ────────────────────────────────────────────────────
+.bg-tooltip {
+  background: rgba(0, 0, 0, 0.72);
 }
