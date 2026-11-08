@@ -34,7 +34,7 @@ export const useStatusStore = defineStore('status', () => {
     },
 
     backgroundColor: '',
-    imageTime: 0,
+    imageTime: 5,
     // 하드웨어 가속: 'auto'|'on'|'off'|'hwonly' + 실효값('hardware'|'software') + 실효 모드
     hardwareAcceleration: 'auto',
     hardwareAccelEffective: null,

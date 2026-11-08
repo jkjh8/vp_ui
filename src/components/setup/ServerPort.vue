@@ -31,7 +31,7 @@ const openDialogPort = async (type) => {
 
   $q.dialog({
     component: editNumber,
-    componentProps: { value: currentValue, title, label, icon, min: 0, max: 65535 },
+    componentProps: { value: currentValue, title, label, icon, min: 1, max: 65535 },
   }).onOk(async (data) => {
     try {
       await useStatusStore().updateStatus(portKey, data)

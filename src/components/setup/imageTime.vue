@@ -18,7 +18,7 @@ const updateValue = async (value) => {
         round
         size="sm"
         icon="chevron_left"
-        @click="updateValue(Math.max(0, (Number(pStatus.imageTime) || 0) - 1))"
+        @click="updateValue(Math.max(1, (Number(pStatus.imageTime) || 5) - 1))"
       />
       <span class="text-bold time-val">
         {{ pStatus.imageTime }}<span class="text-caption q-ml-xs">{{ $t('setup.imageTime.sec') }}</span>
@@ -28,7 +28,7 @@ const updateValue = async (value) => {
         round
         size="sm"
         icon="chevron_right"
-        @click="updateValue(Math.min(60, (Number(pStatus.imageTime) || 0) + 1))"
+        @click="updateValue(Math.min(60, (Number(pStatus.imageTime) || 5) + 1))"
       />
     </template>
   </SettingRow>

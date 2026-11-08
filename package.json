@@ -1,9 +1,10 @@
 {
   "name": "vp-ui",
   "version": "0.0.1",
-  "description": "A Quasar Project",
-  "productName": "ui for vplay",
-  "author": "jkjh8 <jkjh82@naver.com>",
+  "description": "VP App 운영자 웹 UI",
+  "productName": "VP App UI",
+  "author": "jkjh8",
+  "license": "GPL-3.0-only",
   "type": "module",
   "private": true,
   "scripts": {
