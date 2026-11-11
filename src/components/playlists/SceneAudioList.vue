@@ -10,6 +10,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useWindowAudio } from 'src/composables/useWindowAudio'
 import DelayChip from './DelayChip.vue'
+import { srcChannelCount, hasEmbeddedAudio, normalizeChannels } from 'src/composables/useAudioChannels'
 
 const { t } = useI18n()
 
@@ -22,17 +23,16 @@ const props = defineProps({
   onPatchAudios: { type: Function, required: true },
   // 추가 오디오가 귀속된 창 (윈도우 모드 항목 = 그 레인의 창). null = 장면 오디오 → 전역 디바이스.
   audioWindow: { type: Number, default: null },
+  // 재생 중 라이브 적용 여부. 트랙 편집 팝업처럼 저장 전 편집에서는 false (재생 중인 덱을 건드리지 않음).
+  live: { type: Boolean, default: true },
 })
 
 const { pStatus } = storeToRefs(useStatusStore())
 const playlistStore = usePlaylistStore()
 
 const clipWin = (c) => (Number.isInteger(c?.window) ? c.window : 0)
-const srcCount = (file) => {
-  const a = (file?.metadata?.streams || []).find((s) => s.codec_type === 'audio')
-  return a?.channels > 0 ? a.channels : file ? 2 : 0
-}
-const hasAudio = (clip) => (clip?.metadata?.streams || []).some((s) => s.codec_type === 'audio')
+const srcCount = srcChannelCount
+const hasAudio = hasEmbeddedAudio
 
 // 출력 채널 옵션 (Mute + Ch1..N, 현재 오디오 디바이스 채널 수 기준)
 const outputChannels = computed(() => {
@@ -61,22 +61,9 @@ const outputOptionsFor = (row) =>
   optionsCache.value(row.kind === 'embedded' ? row.win : props.audioWindow)
 const clampVol = (v) => Math.max(0, Math.min(100, Math.round(Number(v)) || 0))
 
-// channels[] 정규화 (channels > legacy channel_map > 기본 항등). name 포함.
+// channels[] 정규화 (channels > legacy channel_map > 기본 항등)
 const buildChannels = (channels, legacyMap, n) =>
-  Array.from({ length: n }, (_, c) => {
-    const ch = Array.isArray(channels) ? channels[c] : null
-    if (ch) {
-      return {
-        out: Number.isInteger(ch.out) ? ch.out : -1,
-        volume: ch.volume ?? 100,
-        muted: ch.muted === true,
-        delay_ms: Number.isFinite(ch.delay_ms) ? ch.delay_ms : 0,
-      }
-    }
-    if (Array.isArray(legacyMap) && legacyMap[c] != null)
-      return { out: legacyMap[c], volume: 100, muted: false, delay_ms: 0 }
-    return { out: c < outputChannels.value ? c : -1, volume: 100, muted: false, delay_ms: 0 }
-  })
+  normalizeChannels(channels, legacyMap, n, outputChannels.value)
 
 // 평면 행 목록: 임베디드(클립 오디오) + 추가 오디오, 각 소스 채널 1행.
 const rows = computed(() => {
@@ -133,7 +120,8 @@ const persistEmbeddedChannels = (row, channels) => {
     embedded_streams: [{ index: 0, volume: 100, muted: false, channels }],
   })
   // 재생 중이면 라이브 적용 (best-effort). window_id=이 클립의 창(멀티윈도우에서 대상 덱 지정).
-  playlistStore.setDeckAudioLive({ window_id: row.win, streams: [{ index: 0, channels }] })
+  if (props.live)
+    playlistStore.setDeckAudioLive({ window_id: row.win, streams: [{ index: 0, channels }] })
 }
 const editEmbeddedCh = (row, patch) => {
   const channels = row.allChs.map((ch, i) => (i === row.chIdx ? { ...ch, ...patch } : ch))
@@ -147,7 +135,7 @@ const persistAudioChannels = (row, channels) => {
   )
   props.onPatchAudios(next)
   // 재생 중이면 라이브 적용 (윈도우 모드는 persist가 syncTrackAudios를 안 타므로 직접 적용).
-  if (row.audio?.id) playlistStore.setTrackAudioLive(row.audio.id, { channels })
+  if (props.live && row.audio?.id) playlistStore.setTrackAudioLive(row.audio.id, { channels })
 }
 const editAudioCh = (row, patch) => {
   const channels = row.allChs.map((ch, i) => (i === row.chIdx ? { ...ch, ...patch } : ch))

@@ -11,7 +11,7 @@ import { storeToRefs } from 'pinia'
 import Draggable from 'vuedraggable'
 import SceneAudioList from './SceneAudioList.vue'
 import DelayChip from './DelayChip.vue'
-import addTracks from '../dialogs/addTracks.vue'
+import trackEditor from '../dialogs/trackEditor.vue'
 import { toPersistedTrack, toPersistedClip, toPersistedAudio } from 'src/composables/useTracks'
 import { useI18n } from 'vue-i18n'
 import { usePlayback } from 'src/composables/usePlayback'
@@ -76,10 +76,6 @@ const windowList = computed(() =>
 const mutedCount = computed(() => windowList.value.filter((w) => isWindowMuted(w.id)).length)
 const clipWin = (c) => (Number.isInteger(c.window) ? c.window : 0)
 
-// 오디오 전용 창(화면 송출 없음)은 음원(또는 영상의 오디오)을 클립으로 받는다. 일반 창은 영상/이미지.
-const isAudioWin = (id) => (pStatus.value.windows || []).some((w) => w.id === id && w.audioOnly)
-const clipMimeFilter = (id) => (isAudioWin(id) ? ['audio/', 'video/'] : ['video/', 'image/'])
-
 const isThumbable = (clip) =>
   clip && (clip.mimetype?.startsWith('image/') || clip.mimetype?.startsWith('video/'))
 
@@ -138,39 +134,32 @@ const updateSceneOrder = () =>
     .updatePlaylist(currentPlaylist.value, { tracks: scenes.value.map(toPersistedTrack) })
     .catch((e) => console.error('scene reorder failed', e))
 
-// 영상 추가 (창당 1개, 창 수 초과 불가) — 영상/이미지 파일만 표시
+// 장면 편집 — 영상(창별)과 오디오를 한 팝업(trackEditor)에서 함께. 하나만 있어도 저장된다.
+const openSceneEditor = (sceneIdx, opts = {}) => {
+  $q.dialog({
+    component: trackEditor,
+    componentProps: {
+      playlist: currentPlaylistObj.value,
+      mode: 'scene',
+      track: scenes.value[sceneIdx],
+      ...opts,
+    },
+  }).onOk(({ clips, audios }) =>
+    playlistStore.updateTrack(currentPlaylist.value, sceneIdx, {
+      clips: clips.map(toPersistedClip),
+      audios: audios.map(toPersistedAudio),
+    }),
+  )
+}
+const editScene = (sceneIdx) => openSceneEditor(sceneIdx)
+// 영상 추가/교체 = 해당 창 슬롯을 선택한 채로 편집 팝업
 const addVideo = (sceneIdx) => {
-  const scene = scenes.value[sceneIdx]
-  const win = firstUnusedWindow(scene)
+  const win = firstUnusedWindow(scenes.value[sceneIdx])
   if (win == null) return
-  $q.dialog({
-    component: addTracks,
-    componentProps: {
-      playlist: currentPlaylistObj.value,
-      single: true,
-      mimeFilter: clipMimeFilter(win),
-    },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    persistScene(sceneIdx, [...(scene.clips || []), { window: win, uuid: sel[0].uuid }])
-  })
+  openSceneEditor(sceneIdx, { autoPick: 'video', focusWindow: win })
 }
-const replaceVideo = (sceneIdx, clip) => {
-  $q.dialog({
-    component: addTracks,
-    componentProps: {
-      playlist: currentPlaylistObj.value,
-      single: true,
-      mimeFilter: clipMimeFilter(clipWin(clip)),
-    },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    const clips = (scenes.value[sceneIdx].clips || []).map((c) =>
-      clipWin(c) === clipWin(clip) ? { ...c, uuid: sel[0].uuid } : c,
-    )
-    persistScene(sceneIdx, clips)
-  })
-}
+const replaceVideo = (sceneIdx, clip) =>
+  openSceneEditor(sceneIdx, { autoPick: 'video', focusWindow: clipWin(clip) })
 const setClipWindow = (sceneIdx, clip, newWin) => {
   newWin = Number(newWin)
   const scene = scenes.value[sceneIdx]
@@ -214,31 +203,19 @@ const sceneAudioChannels = (scene) => {
   return n
 }
 
-// 장면에 추가 오디오 파일 넣기 (평면 리스트 하단 버튼)
-const addAudio = (sceneIdx) => {
-  $q.dialog({
-    component: addTracks,
-    componentProps: { playlist: currentPlaylistObj.value, mimeFilter: 'audio/' },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    const added = sel.map((f) => ({
-      uuid: f.uuid,
-      volume: 100,
-      muted: false,
-      loop: false,
-      channel_map: null,
-      channels: null,
-    }))
-    persistSceneAudios(sceneIdx, [...(scenes.value[sceneIdx].audios || []), ...added])
-  })
-}
+// 장면에 추가 오디오 파일 넣기 (오디오 영역 하단 버튼) — 편집 팝업 + 오디오 파일 선택 바로 열기
+const addAudio = (sceneIdx) => openSceneEditor(sceneIdx, { autoPick: 'audio' })
 
-// 장면 추가 — 빈 장면(빈 트랙)만 만든다. 이후 "영상 추가"/"오디오 추가"로 채운다.
-// (아무것도 안 채운 빈 장면은 재생 시 서버가 건너뛴다.)
+// 장면 추가 — 편집 팝업에서 영상/오디오를 고른 뒤 만든다 (둘 중 하나만 있어도 됨).
 const addScene = () => {
-  playlistStore.updatePlaylist(currentPlaylist.value, {
-    tracks: [...scenes.value.map(toPersistedTrack), { clips: [], audios: [] }],
-  })
+  $q.dialog({
+    component: trackEditor,
+    componentProps: { playlist: currentPlaylistObj.value, mode: 'scene' },
+  }).onOk(({ clips, audios }) =>
+    playlistStore.updatePlaylist(currentPlaylist.value, {
+      tracks: [...scenes.value.map(toPersistedTrack), toPersistedTrack({ clips, audios })],
+    }),
+  )
 }
 const removeScene = (sceneIdx) =>
   playlistStore.updatePlaylist(currentPlaylist.value, {
@@ -383,6 +360,9 @@ const playScene = (index) => playlistStore.playlistPlay(playlistStore.getCurrent
             <q-btn dense flat round icon="play_arrow" color="grey-7" @click.stop="playScene(index)"
               ><q-tooltip>{{ $t('playlists.tracksView.playFromScene') }}</q-tooltip></q-btn
             >
+            <q-btn dense flat round icon="edit" color="grey-7" @click.stop="editScene(index)"
+              ><q-tooltip>{{ $t('playlists.tracksView.editScene') }}</q-tooltip></q-btn
+            >
             <q-btn dense flat round icon="delete" color="grey-7" @click.stop="removeScene(index)"
               ><q-tooltip>{{ $t('playlists.tracksView.deleteScene') }}</q-tooltip></q-btn
             >
@@ -446,19 +426,11 @@ const playScene = (index) => playlistStore.playlistPlay(playlistStore.getCurrent
                       />
                     </div>
                   </div>
-                  <q-btn dense flat round size="sm" icon="more_vert" color="grey-7">
-                    <q-menu auto-close>
-                      <q-list dense style="min-width: 160px">
-                        <q-item clickable @click="replaceVideo(index, clip)">
-                          <q-item-section avatar><q-icon name="swap_horiz" /></q-item-section>
-                          <q-item-section>{{ $t('playlists.tracksView.replaceVideoTooltip') }}</q-item-section>
-                        </q-item>
-                        <q-item clickable @click="removeVideo(index, clip)">
-                          <q-item-section avatar><q-icon name="close" color="negative" /></q-item-section>
-                          <q-item-section>{{ $t('common.remove') }}</q-item-section>
-                        </q-item>
-                      </q-list>
-                    </q-menu>
+                  <q-btn dense flat round size="sm" icon="edit" color="grey-7" @click="editScene(index)">
+                    <q-tooltip>{{ $t('playlists.tracksView.editScene') }}</q-tooltip>
+                  </q-btn>
+                  <q-btn dense flat round size="sm" icon="delete" color="grey-7" @click="removeVideo(index, clip)">
+                    <q-tooltip>{{ $t('common.remove') }}</q-tooltip>
                   </q-btn>
                 </div>
               </div>

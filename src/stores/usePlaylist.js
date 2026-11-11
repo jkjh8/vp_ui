@@ -50,31 +50,6 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     }
   }
 
-  const updateTracksInPlaylist = async (playlistId, tracksData) => {
-    try {
-      // 해당 플레이리스트의 트랙에 추가될 플레이 리스트 트랙들을 업데이트합니다.
-      const playlist = playlists.value.find((p) => p._id === playlistId)
-      if (!playlist) {
-        throw new Error('Playlist not found')
-      }
-      // 기존 트랙의 영속 필드(time/volume/channel_map)를 보존하고 새 파일만 기본값으로 추가
-      const tracks = [
-        ...(playlist.tracks || []).map(toPersistedTrack),
-        ...tracksData.map((file) => toPersistedTrack({ uuid: file.uuid, time: 0 })),
-      ]
-      const response = await apiCallWithLoading(
-        `/playlist`,
-        'PUT',
-        { tracks: tracks, id: playlistId },
-        'Updating tracks in playlist...',
-      )
-      await getPlaylists()
-      return response.data
-    } catch (error) {
-      console.error('Error updating tracks in playlist:', error)
-    }
-  }
-
   const deletePlaylist = async (playlistId) => {
     try {
       const response = await apiCallWithLoading(
@@ -241,7 +216,6 @@ export const usePlaylistStore = defineStore('Playlist', () => {
     updatePlaylist,
     deletePlaylist,
     changeCurrentPlaylist,
-    updateTracksInPlaylist,
     removeTrackFromPlaylist,
     playCurrentPlaylist,
     playlistPlay,

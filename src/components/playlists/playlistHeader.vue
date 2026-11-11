@@ -9,7 +9,8 @@ import { usePlaylistStore } from 'src/stores/usePlaylist'
 import DelayedTooltip from '../DelayedTooltip.vue'
 import PreloadBadge from '../ui/PreloadBadge.vue'
 import addPlaylist from '../dialogs/addPlaylist.vue'
-import addTracks from '../dialogs/addTracks.vue'
+import trackEditor from '../dialogs/trackEditor.vue'
+import { toPersistedTrack, toPersistedWindowTracks } from 'src/composables/useTracks'
 import confirmDialog from '../dialogs/confirmDialog.vue'
 import { usePlayback } from 'src/composables/usePlayback'
 import { useI18n } from 'vue-i18n'
@@ -90,16 +91,30 @@ const deletePlaylist = () => {
   }).onOk(() => playlistStore.deletePlaylist(current.value._id))
 }
 
+// 트랙 1개 추가 — 영상·오디오를 한 팝업(trackEditor)에서. 윈도우형은 팝업에서 창(레인)을 고른다.
 const addTrack = () => {
   if (!current.value) return warnNoPlaylist()
+  const mode = plMode(current.value)
   $q.dialog({
-    component: addTracks,
-    componentProps: { playlist: current.value, currentPlaylist: currentPlaylist.value },
-  }).onOk(async (tracks) => {
-    if (!tracks || tracks.length === 0) return
+    component: trackEditor,
+    componentProps: { playlist: current.value, mode },
+  }).onOk(async ({ clips, audios, window }) => {
+    const existing = current.value.tracks || []
     try {
-      await playlistStore.updateTracksInPlaylist(currentPlaylist.value, tracks)
-      notifyOk(t('playlists.playlistHeader.tracksAdded', { n: tracks.length }))
+      if (mode === 'window') {
+        const item = clips.length
+          ? { clips: [{ ...clips[0], window }], audios }
+          : { clips: [], window, audios }
+        await playlistStore.updatePlaylist(currentPlaylist.value, {
+          tracks: toPersistedWindowTracks([...existing, item]),
+          mode: 'window',
+        })
+      } else {
+        await playlistStore.updatePlaylist(currentPlaylist.value, {
+          tracks: [...existing.map(toPersistedTrack), toPersistedTrack({ clips, audios })],
+        })
+      }
+      notifyOk(t('playlists.playlistHeader.tracksAdded', { n: 1 }))
     } catch {
       notifyErr(t('playlists.playlistHeader.addTrackFailed'))
     }

@@ -11,7 +11,7 @@ import { useStatusStore } from 'src/stores/useStatus'
 import { storeToRefs } from 'pinia'
 import Draggable from 'vuedraggable'
 import SceneAudioList from './SceneAudioList.vue'
-import addTracks from '../dialogs/addTracks.vue'
+import trackEditor from '../dialogs/trackEditor.vue'
 import { toPersistedWindowTracks } from 'src/composables/useTracks'
 import { useI18n } from 'vue-i18n'
 import { usePlayback } from 'src/composables/usePlayback'
@@ -38,7 +38,6 @@ const tracks = computed(() => currentPlaylistObj.value?.tracks || [])
 
 // 오디오 전용 창(화면 송출 없음)은 음원(또는 영상의 오디오)을 클립으로 받는다. 일반 창은 영상/이미지.
 const isAudioWin = (id) => (pStatus.value.windows || []).some((w) => w.id === id && w.audioOnly)
-const clipMimeFilter = (id) => (isAudioWin(id) ? ['audio/', 'video/'] : ['video/', 'image/'])
 
 const clipOf = (t) => (Array.isArray(t?.clips) ? t.clips[0] : t) || {}
 const clipWin = (t) => {
@@ -123,53 +122,36 @@ const stopWin = (W) => playlistStore.stopWindow(W)
 const isThumbable = (clip) =>
   clip && (clip.mimetype?.startsWith('image/') || clip.mimetype?.startsWith('video/'))
 
-const addItems = (W) => {
+// 항목 추가/편집 — 영상(0~1개)과 오디오를 한 팝업(trackEditor)에서. 하나만 있어도 저장된다.
+// 영상 없는 항목은 재생 시 이 창은 배경 표시 + 오디오만, 오디오 길이 후 다음 항목.
+const editorResultToItem = (W, { clips, audios }) =>
+  clips.length
+    ? { clips: [{ ...clips[0], window: W }], audios }
+    : { clips: [], window: W, audios }
+const addItem = (W) => {
   $q.dialog({
-    component: addTracks,
-    componentProps: { playlist: currentPlaylistObj.value, mimeFilter: clipMimeFilter(W) },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    for (const f of sel) lanes[W].push({ clips: [{ window: W, uuid: f.uuid }], audios: [] })
+    component: trackEditor,
+    componentProps: { playlist: currentPlaylistObj.value, mode: 'window', windowId: W },
+  }).onOk((res) => {
+    lanes[W].push(editorResultToItem(W, res))
     persist()
   })
 }
-// 오디오 전용 항목 추가 (영상 없음) — 재생 시 이 창은 배경 표시 + 오디오만, 오디오 길이 후 다음 항목.
-const addAudioItem = (W) => {
+const editItem = (W, item, opts = {}) => {
   $q.dialog({
-    component: addTracks,
-    componentProps: { playlist: currentPlaylistObj.value, mimeFilter: 'audio/' },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    for (const f of sel) {
-      lanes[W].push({
-        clips: [],
-        window: W,
-        audios: [
-          {
-            uuid: f.uuid,
-            volume: 100,
-            muted: false,
-            loop: false,
-            channel_map: null,
-            channels: null,
-          },
-        ],
-      })
-    }
-    persist()
-  })
-}
-const replaceItem = (item) => {
-  $q.dialog({
-    component: addTracks,
+    component: trackEditor,
     componentProps: {
       playlist: currentPlaylistObj.value,
-      single: true,
-      mimeFilter: clipMimeFilter(clipWin(item)),
+      mode: 'window',
+      windowId: W,
+      track: item,
+      ...opts,
     },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    clipOf(item).uuid = sel[0].uuid
+  }).onOk((res) => {
+    const next = editorResultToItem(W, res)
+    item.clips = next.clips
+    item.audios = next.audios
+    if ('window' in next) item.window = W
     persist()
   })
 }
@@ -186,24 +168,7 @@ const patchAudios = (item, audios) => {
   item.audios = audios
   persist()
 }
-const addAudio = (item) => {
-  $q.dialog({
-    component: addTracks,
-    componentProps: { playlist: currentPlaylistObj.value, mimeFilter: 'audio/' },
-  }).onOk((sel) => {
-    if (!sel || !sel.length) return
-    const added = sel.map((f) => ({
-      uuid: f.uuid,
-      volume: 100,
-      muted: false,
-      loop: false,
-      channel_map: null,
-      channels: null,
-    }))
-    item.audios = [...(item.audios || []), ...added]
-    persist()
-  })
-}
+const addAudio = (W, item) => editItem(W, item, { autoPick: 'audio' })
 
 // 오디오 채널 수 배지
 const itemAudioChannels = (item) => {
@@ -337,13 +302,9 @@ const toggleExpand = (W, i) => {
                     v-if="isThumbable(clipOf(item))"
                     :src="`${getAddr()}/api/files/thumbnail/${clipOf(item).uuid}`"
                     class="item-thumb"
-                    @click="replaceItem(item)"
+                    @click="editItem(w.id, item)"
                   />
-                  <div
-                    v-else
-                    class="item-thumb flex flex-center"
-                    @click="isAudioOnly(item) ? toggleExpand(w.id, index) : replaceItem(item)"
-                  >
+                  <div v-else class="item-thumb flex flex-center" @click="editItem(w.id, item)">
                     <q-icon
                       :name="isAudioOnly(item) ? 'music_note' : 'movie'"
                       size="18px"
@@ -389,19 +350,11 @@ const toggleExpand = (W, i) => {
                         : '')
                     }}</q-tooltip>
                   </q-btn>
-                  <q-btn dense flat round size="sm" icon="more_vert" color="grey-7">
-                    <q-menu auto-close>
-                      <q-list dense style="min-width: 140px">
-                        <q-item v-if="!isAudioOnly(item)" clickable @click="replaceItem(item)">
-                          <q-item-section avatar><q-icon name="swap_horiz" /></q-item-section>
-                          <q-item-section>{{ $t('playlists.windowTracksView.replace') }}</q-item-section>
-                        </q-item>
-                        <q-item clickable @click="removeItem(w.id, index)">
-                          <q-item-section avatar><q-icon name="close" color="negative" /></q-item-section>
-                          <q-item-section>{{ $t('common.remove') }}</q-item-section>
-                        </q-item>
-                      </q-list>
-                    </q-menu>
+                  <q-btn dense flat round size="sm" icon="edit" color="grey-7" @click="editItem(w.id, item)">
+                    <q-tooltip>{{ $t('playlists.windowTracksView.edit') }}</q-tooltip>
+                  </q-btn>
+                  <q-btn dense flat round size="sm" icon="delete" color="grey-7" @click="removeItem(w.id, index)">
+                    <q-tooltip>{{ $t('common.remove') }}</q-tooltip>
                   </q-btn>
                 </div>
 
@@ -426,7 +379,7 @@ const toggleExpand = (W, i) => {
                     :label="$t('playlists.windowTracksView.addAudio')"
                     color="grey-7"
                     class="add-audio-btn"
-                    @click="addAudio(item)"
+                    @click="addAudio(w.id, item)"
                   />
                 </div>
               </div>
@@ -434,19 +387,8 @@ const toggleExpand = (W, i) => {
           </Draggable>
 
           <div class="row items-center">
-            <!-- 오디오 전용 창: 음원이 곧 클립이므로 '음원 추가' 하나만. 일반 창은 영상/음원 드롭다운 -->
+            <!-- 항목 추가: 영상·오디오를 한 팝업에서 (둘 중 하나만 있어도 됨) -->
             <q-btn
-              v-if="isAudioWin(w.id)"
-              flat
-              dense
-              icon="library_music"
-              :label="$t('playlists.windowTracksView.addAudio')"
-              color="grey-7"
-              class="add-item-btn"
-              @click="addItems(w.id)"
-            />
-            <q-btn-dropdown
-              v-else
               flat
               dense
               no-caps
@@ -454,18 +396,8 @@ const toggleExpand = (W, i) => {
               :label="$t('common.add')"
               color="grey-7"
               class="add-item-btn"
-            >
-              <q-list dense>
-                <q-item v-close-popup clickable @click="addItems(w.id)">
-                  <q-item-section avatar><q-icon name="movie" /></q-item-section>
-                  <q-item-section>{{ $t('playlists.windowTracksView.addVideo') }}</q-item-section>
-                </q-item>
-                <q-item v-close-popup clickable @click="addAudioItem(w.id)">
-                  <q-item-section avatar><q-icon name="library_music" /></q-item-section>
-                  <q-item-section>{{ $t('playlists.windowTracksView.addAudio') }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
+              @click="addItem(w.id)"
+            />
           </div>
         </div>
       </q-card>

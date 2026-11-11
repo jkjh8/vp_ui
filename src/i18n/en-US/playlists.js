@@ -42,7 +42,8 @@ export default {
   tracksView: {
     selectPlaylist: 'Select a playlist.',
     noOutputWindows: 'No output windows. Add a window first in Settings > Multi-Window.',
-    noScenes: 'No scenes. Create an empty scene with "Add scene", then add video/audio.',
+    noScenes: 'No scenes. Use "Add scene" and pick a video or audio file to create one.',
+    editScene: 'Edit scene (video · audio)',
     setSceneNameTooltip: 'Set scene name',
     windowMute: 'Mute audio per window',
     addScene: 'Add scene',
@@ -57,7 +58,6 @@ export default {
     video: 'Video',
     delay: 'Delay',
     ms: 'ms',
-    replaceVideoTooltip: 'Replace video',
     addVideo: 'Add video',
     oneVideoPerWindow: '1 video per window ({n}) — add more windows to add more.',
     audio: 'Audio',
@@ -79,8 +79,7 @@ export default {
     ms: 'ms',
     chCount: '{n}ch',
     playFromItem: 'Play from this item',
-    replace: 'Replace',
+    edit: 'Edit (video · audio)',
     addAudio: 'Add audio',
-    addVideo: 'Add video',
   },
 }

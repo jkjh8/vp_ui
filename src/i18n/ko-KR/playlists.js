@@ -42,7 +42,8 @@ export default {
   tracksView: {
     selectPlaylist: '플레이리스트를 선택하세요.',
     noOutputWindows: '출력 창이 없습니다. 설정 > Multi-Window에서 창을 먼저 추가하세요.',
-    noScenes: '장면이 없습니다. "장면 추가"로 빈 장면을 만든 뒤 영상/음원을 추가하세요.',
+    noScenes: '장면이 없습니다. "장면 추가"에서 영상이나 오디오를 골라 장면을 만드세요.',
+    editScene: '장면 편집 (영상·오디오)',
     setSceneNameTooltip: '장면 이름 지정',
     windowMute: '창별 오디오 뮤트',
     addScene: '장면 추가',
@@ -57,7 +58,6 @@ export default {
     video: '영상',
     delay: '지연',
     ms: 'ms',
-    replaceVideoTooltip: '영상 교체',
     addVideo: '영상 추가',
     oneVideoPerWindow: '창({n}개)마다 영상 1개 — 더 넣으려면 창을 추가하세요.',
     audio: '오디오',
@@ -79,8 +79,7 @@ export default {
     ms: 'ms',
     chCount: '{n}ch',
     playFromItem: '이 항목부터 재생',
-    replace: '교체',
+    edit: '편집 (영상·오디오)',
     addAudio: '오디오 추가',
-    addVideo: '영상 추가',
   },
 }
